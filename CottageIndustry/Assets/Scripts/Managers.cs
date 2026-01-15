@@ -2,15 +2,28 @@ using UnityEngine;
 
 public class Managers : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private static Managers Instance;
+
+    public static UIManager UI { get; private set; }
+
+    private void Awake()
     {
-        
+        Init();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Init()
     {
-        
+        if (Instance)
+        {
+            Destroy(this);
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(this);
+
+        UI = new UIManager();
+
+        UI.Init();
     }
 }
