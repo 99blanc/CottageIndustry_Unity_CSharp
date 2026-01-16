@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class UISubItem : UserInterface
 {
     public override void Init() => base.Init();

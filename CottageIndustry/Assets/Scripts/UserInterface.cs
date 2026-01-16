@@ -1,3 +1,4 @@
+using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using Cysharp.Threading.Tasks.Linq;
 using Cysharp.Threading.Tasks.Triggers;
@@ -22,7 +23,7 @@ public abstract class UserInterface : MonoBehaviour
 {
     private Dictionary<Type, Object[]> objects = new();
 
-    public virtual void Init() { }
+    public virtual void Init() => objects.Clear();
 
     private void Start() => Init();
 
@@ -32,18 +33,19 @@ public abstract class UserInterface : MonoBehaviour
         Object[] newObjects = new Object[values.Length];
         objects.Add(typeof(T), newObjects);
 
-        for (int i = 0; i < values.Length; ++i)
-        {
-            UnityExtensions.String.Clear();
-            UnityExtensions.String.Append(values.GetValue(i));
-            newObjects[i] = typeof(T) == typeof(GameObject) ? gameObject.FindChild(UnityExtensions.String, true) : gameObject.FindChild<T>(UnityExtensions.String, true);
-        }
+        for (int index = 0; index < values.Length; ++index)
+            newObjects[index] = typeof(T) == typeof(GameObject) ? gameObject.FindChild(ZString.Concat(values.GetValue(index)), true) : gameObject.FindChild<T>(ZString.Concat(values.GetValue(index)), true);
     }
 
     protected T Get<T>(int index) where T : Object
     {
-        if (objects.TryGetValue(typeof(T), out var objs))
-            return objs[index] as T;
+        if (objects.TryGetValue(typeof(T), out Object[] newObjects))
+        {
+            if (index < 0 || index >= newObjects.Length)
+                throw new IndexOutOfRangeException();
+
+            return newObjects[index] as T;
+        }
 
         throw new InvalidOperationException();
     }
@@ -61,14 +63,14 @@ public abstract class UserInterface : MonoBehaviour
     public static void BindViewEvent(UIBehaviour view, Action<PointerEventData> action, ViewEvent type, Component component)
     {
         CancellationToken token = component.GetCancellationTokenOnDestroy();
-        var enumerable = type switch
+        IUniTaskAsyncEnumerable<PointerEventData> enumerable = type switch
         {
             ViewEvent.ENTER => view.gameObject.GetAsyncPointerEnterTrigger(),
             ViewEvent.EXIT => view.gameObject.GetAsyncPointerExitTrigger(),
             ViewEvent.LEFT_CLICK => view.gameObject.GetAsyncPointerClickTrigger()
-                .Where(d => d.button == PointerEventData.InputButton.Left),
+                .Where(data => data.button == PointerEventData.InputButton.Left),
             ViewEvent.RIGHT_CLICK => view.gameObject.GetAsyncPointerDownTrigger()
-                .Where(d => d.button == PointerEventData.InputButton.Right),
+                .Where(data => data.button == PointerEventData.InputButton.Right),
             _ => throw new ArgumentOutOfRangeException()
         };
         enumerable.Subscribe(action, token);
@@ -76,6 +78,6 @@ public abstract class UserInterface : MonoBehaviour
 
     public static void BindModelEvent<T>(IReadOnlyAsyncReactiveProperty<T> model, Action<T> action, Component component)
     {
-        model.ForEachAsync(x => action(x), component.GetCancellationTokenOnDestroy()).Forget();
+        model.ForEachAsync(action, component.GetCancellationTokenOnDestroy()).Forget();
     }
 }

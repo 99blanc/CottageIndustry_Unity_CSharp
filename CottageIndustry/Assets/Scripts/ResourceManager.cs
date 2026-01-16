@@ -1,37 +1,35 @@
+using Cysharp.Text;
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class ResourceManager
 {
-    public Dictionary<string, Image> Images { get; private set; }
-    public Dictionary<string, GameObject> Prefabs { get; private set; }
+    private Dictionary<string, AsyncOperationHandle> handles = new();
 
-    public void Init()
+    public void Init() => handles.Clear();
+
+    private async UniTask<T> Load<T>(string path) where T : Object
     {
-        Images = new Dictionary<string, Image>();
-        Prefabs = new Dictionary<string, GameObject>();
+        if (handles.TryGetValue(path, out AsyncOperationHandle handle))
+            return handle.Convert<T>().Result;
+
+        AsyncOperationHandle<T> asyncHandle = Addressables.LoadAssetAsync<T>(path);
+        handles[path] = asyncHandle;
+
+        return await asyncHandle.ToUniTask();
     }
 
-    private T Load<T>(Dictionary<string, T> dictionary, string path) where T : Object
+    public async UniTask<Image> LoadImage(string path) => await Load<Image>(ZString.Concat(Define.Path.IMAGE, path));
+    public async UniTask<GameObject> LoadPrefab(string path) => await Load<GameObject>(ZString.Concat(Define.Path.PREFAB, path));
+
+    public async UniTask<GameObject> Instantiate(string path, Transform parent = null)
     {
-        if (!dictionary.ContainsKey(path))
-        {
-            T resource = Resources.Load<T>(path);
-            dictionary.Add(path, resource);
-
-            return dictionary[path];
-        }
-
-        return dictionary[path];
-    }
-
-    public Image LoadImage(string path) => Load(Images, string.Concat(Define.Path.IMAGE, path));
-    public GameObject LoadPrefab(string path) => Load(Prefabs, string.Concat(Define.Path.PREFAB, path));
-
-    public GameObject Instantiate(string path, Transform parent = null)
-    {
-        GameObject prefab = LoadPrefab(path);
+        GameObject prefab = await LoadPrefab(path);
+        Debug.Assert(prefab);
 
         return Instantiate(prefab, parent);
     }
@@ -44,9 +42,18 @@ public class ResourceManager
         return gameObject;
     }
 
+    public void Unload(string path)
+    {
+        if (handles.TryGetValue(path, out AsyncOperationHandle handle))
+        {
+            Addressables.Release(handle);
+            handles.Remove(path);
+        }
+    }
+
     public void Destroy(GameObject gameObject)
     {
         if (gameObject)
-            Destroy(gameObject);
+            Object.Destroy(gameObject);
     }
 }

@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class Define
 {
     public static class Path

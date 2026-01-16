@@ -1,19 +1,16 @@
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class UIManager
 {
-    private Stack<UIPopup> popupStack;
+    private Stack<UIPopup> popupStack = new();
 
     private static readonly Vector3 DEFAULT_SCALE = Vector3.one;
     private int currentCanvasOrder = -20;
     private GameObject container;
 
-    public void Init()
-    {
-        popupStack = new Stack<UIPopup>();
-        container = new GameObject(nameof(container));
-    }
+    public void Init() => container = new(nameof(container));
 
     public void SetCanvas(GameObject gameObject, bool sort = true)
     {
@@ -32,26 +29,25 @@ public class UIManager
         canvas.sortingOrder = 0;
     }
 
-    public T OpenPopup<T>(Transform parent = null) where T : UIPopup
+    public async UniTask<T> OpenPopup<T>(Transform parent = null) where T : UIPopup
     {
-        T popup = SetupUI<T>(parent);
+        T popup = await SetupUI<T>(parent);
         popupStack.Push(popup);
 
         return popup;
     }
 
-    public T OpenSubItem<T>(Transform parent = null) where T : UISubItem => SetupUI<T>(parent);
+    public async UniTask<T> OpenSubItem<T>(Transform parent = null) where T : UISubItem => await SetupUI<T>(parent);
 
-    private T SetupUI<T>(Transform parent = null) where T : UserInterface
+    private async UniTask<T> SetupUI<T>(Transform parent = null) where T : UserInterface
     {
-        GameObject prefab = Managers.Resource.LoadPrefab(typeof(T).Name);
+        GameObject prefab = await Managers.Resource.LoadPrefab(typeof(T).Name);
         GameObject gameObject = Managers.Resource.Instantiate(prefab);
-        gameObject.transform.localScale = DEFAULT_SCALE;
-        gameObject.transform.localPosition = prefab.transform.position;
-        gameObject.transform.SetParent(container.transform);
-
-        if (parent)
-            gameObject.transform.SetParent(parent);
+        Transform transform = gameObject.transform;
+        transform.localScale = DEFAULT_SCALE;
+        transform.localPosition = prefab.transform.position;
+        Transform targetParent = parent != null ? parent : container.transform;
+        transform.SetParent(targetParent);
 
         return gameObject.GetComponentAssert<T>();
     }
