@@ -1,18 +1,36 @@
 {
   "dependencies": {
-    "com.cysharp.unitask": {
-      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
+    "com.cysharp.memorypack": {
+      "version": "file:com.cysharp.memorypack",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "73a63b7f672b88f7e9992f6917eb458a8cbb6fa9"
+      "source": "embedded",
+      "dependencies": {}
     },
-    "com.github-glitchenzo.nugetforunity": {
-      "version": "https://github.com/GlitchEnzo/NuGetForUnity.git?path=/src/NuGetForUnity",
+    "com.cysharp.r3": {
+      "version": "file:com.cysharp.r3",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "34432703a177c97631a4eb1d908f086037c67969"
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.modules.imgui": "1.0.0"
+      }
+    },
+    "com.cysharp.unitask": {
+      "version": "file:com.cysharp.unitask",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.cysharp.zlinq": {
+      "version": "file:com.cysharp.zlinq",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
+    "com.cysharp.zstring": {
+      "version": "file:com.cysharp.zstring",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
     },
     "com.unity.2d.animation": {
       "version": "13.0.2",
