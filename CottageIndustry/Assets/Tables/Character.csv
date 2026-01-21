@@ -1,0 +1,2 @@
+id,maxHealth,tempHealth,damage,dashCount,jumpCount,gvReduction,atkSpeed,moveSpeed,jumpForce,dashDistance,dashCooltime,invulDuration,weaponCategory
+1,6,0,0,3,2,0,0,5,5,5,2,0.5,0
