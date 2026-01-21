@@ -5,12 +5,11 @@ using UnityEngine;
 public class UIManager
 {
     private Stack<UIPopup> popupStack = new();
-
-    private static readonly Vector3 DEFAULT_SCALE = Vector3.one;
+    private GameObject container = new(Define.ROOT);
+    private readonly Vector3 DEFAULT_SCALE = Vector3.one;
     private int currentCanvasOrder = -20;
-    private GameObject container;
 
-    public void Init() => container = new(nameof(container));
+    public void Init() => popupStack.Clear();
 
     public void SetCanvas(GameObject gameObject, bool sort = true)
     {
@@ -22,7 +21,6 @@ public class UIManager
         {
             canvas.sortingOrder = currentCanvasOrder;
             currentCanvasOrder += 1;
-
             return;
         }
 
@@ -33,7 +31,6 @@ public class UIManager
     {
         T popup = await SetupUI<T>(parent);
         popupStack.Push(popup);
-
         return popup;
     }
 
@@ -43,13 +40,18 @@ public class UIManager
     {
         GameObject prefab = await Managers.Resource.LoadPrefab(typeof(T).Name);
         GameObject gameObject = Managers.Resource.Instantiate(prefab);
+        T UI = gameObject.GetComponentAssert<T>();
+        UI.Init();
         Transform transform = gameObject.transform;
         transform.localScale = DEFAULT_SCALE;
         transform.localPosition = prefab.transform.position;
-        Transform targetParent = parent != null ? parent : container.transform;
+        Transform targetParent = parent is null ? container.transform : parent;
         transform.SetParent(targetParent);
 
-        return gameObject.GetComponentAssert<T>();
+        if (UI is UIPopup)
+            SetCanvas(gameObject);
+
+        return UI;
     }
 
     public void ClosePopup(UIPopup popup)

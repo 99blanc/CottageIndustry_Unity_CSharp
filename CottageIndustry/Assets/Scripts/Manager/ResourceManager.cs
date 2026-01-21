@@ -5,32 +5,40 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.InputSystem;
 
 public class ResourceManager
 {
-    private Dictionary<string, AsyncOperationHandle> handles = new();
+    public Dictionary<string, AsyncOperationHandle> Handle = new();
 
-    public void Init() => handles.Clear();
+    public void Init() => Handle.Clear();
 
     private async UniTask<T> Load<T>(string path) where T : Object
     {
-        if (handles.TryGetValue(path, out AsyncOperationHandle handle))
+        if (Handle.TryGetValue(path, out AsyncOperationHandle handle))
+        {
+            if (handle.IsDone)
+                return handle.Convert<T>().Result;
+
+            await handle.ToUniTask();
             return handle.Convert<T>().Result;
+        }
 
         AsyncOperationHandle<T> asyncHandle = Addressables.LoadAssetAsync<T>(path);
-        handles[path] = asyncHandle;
-
+        Handle[path] = asyncHandle;
         return await asyncHandle.ToUniTask();
     }
 
-    public async UniTask<Image> LoadImage(string path) => await Load<Image>(ZString.Concat(Define.Path.IMAGE, path));
+    public async UniTask<Image> LoadSprite(string path) => await Load<Image>(ZString.Concat(Define.Path.SPRITE, path));
     public async UniTask<GameObject> LoadPrefab(string path) => await Load<GameObject>(ZString.Concat(Define.Path.PREFAB, path));
+    public async UniTask<InputActionAsset> LoadInputSystem(string path) => await Load<InputActionAsset>(ZString.Concat(Define.Path.SYSTEM, path));
+    public async UniTask<TextAsset> LoadTextAsset(string path)  => await Load<TextAsset>(ZString.Concat(Define.Path.TABLE, path));
+
 
     public async UniTask<GameObject> Instantiate(string path, Transform parent = null)
     {
         GameObject prefab = await LoadPrefab(path);
         Debug.Assert(prefab);
-
         return Instantiate(prefab, parent);
     }
 
@@ -38,16 +46,15 @@ public class ResourceManager
     {
         GameObject gameObject = Object.Instantiate(prefab, parent);
         gameObject.name = prefab.name;
-
         return gameObject;
     }
 
     public void Unload(string path)
     {
-        if (handles.TryGetValue(path, out AsyncOperationHandle handle))
+        if (Handle.TryGetValue(path, out AsyncOperationHandle handle))
         {
             Addressables.Release(handle);
-            handles.Remove(path);
+            Handle.Remove(path);
         }
     }
 
