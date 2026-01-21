@@ -6,14 +6,13 @@ using UnityEngine.InputSystem;
 
 public class ConfigManager
 {
-    private string SAVE_PATH;
+    private readonly string SAVE_PATH = System.IO.Path.Combine(Application.persistentDataPath, ZString.Concat(Define.PROFILE));
     public Config Current { get; private set; }
     public InputActionAsset ActAsset { get; private set; }
     public InputActionMap ActMap { get; private set; }
 
     public async UniTask Init()
     {
-        SAVE_PATH = System.IO.Path.Combine(Application.persistentDataPath, ZString.Concat(Define.PROFILE));
         Current = await GetProfile() ?? new Config();
         ActAsset = await Utils.SetupInputAsset();
 
