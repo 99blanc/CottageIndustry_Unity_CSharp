@@ -64,7 +64,7 @@ public class CharacterControl : MonoBehaviour
     private void CheckGround()
     {
         RaycastHit2D hit = Physics2D.BoxCast(cCollider.bounds.center, cCollider.bounds.size, 0f, Vector2.down, 0.1f, LayerMask.GetMask(Define.Layer.GROUND));
-        bool isGrounded = (hit.collider is not null && rBody.linearVelocity.y <= 0.1f) ? true : false;
+        bool isGrounded = (hit.collider is not null && rBody.linearVelocity.y <= 0.025f) ? true : false;
 
         if (isGrounded)
             currentJumpCount = 0;
