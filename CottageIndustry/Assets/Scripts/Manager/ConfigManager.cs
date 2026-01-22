@@ -39,6 +39,7 @@ public class ConfigManager
         {
             if (System.IO.File.Exists(SAVE_PATH))
                 System.IO.File.Delete(SAVE_PATH);
+
             return null;
         }
     }
