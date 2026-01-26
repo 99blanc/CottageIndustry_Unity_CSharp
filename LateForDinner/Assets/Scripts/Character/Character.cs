@@ -4,22 +4,22 @@ using UnityEngine;
 
 public abstract class Character<T> : MonoBehaviour, IStat<T> where T : Component
 {
-    public StatModule module { get; set; } = new();
+    public StatModule stats { get; set; } = new();
     public ReactiveProperty<short> currentHealth { get; set; } = new();
     public ReactiveProperty<short> tempHealth { get; set; } = new();
 
     public virtual void Init()
     {
-        this.GetOrAddComponent<CharacterControl>();
-        this.GetOrAddComponent<CharacterAnimation>();
+        gameObject.GetOrAddComponent<CharacterControl>();
+        gameObject.GetOrAddComponent<CharacterAnimation>();
     }
 
     public virtual void Heal(short amount)
     {
         currentHealth.Value += amount;
 
-        if (currentHealth.Value > module.maxHealth.Value)
-            currentHealth.Value = module.maxHealth.Value;
+        if (currentHealth.Value > stats.maxHealth.Value)
+            currentHealth.Value = stats.maxHealth.Value;
     }
 
     public virtual void TakeDamage(short damage)

@@ -11,15 +11,15 @@ using Object = UnityEngine.Object;
 
 public abstract class UserInterface : MonoBehaviour
 {
-    private Dictionary<Type, Object[]> view = new();
+    private Dictionary<Type, Object[]> views = new();
 
-    public virtual void Init() => view.Clear();
+    public virtual void Init() => views.Clear();
 
     protected void Bind<T>(Type type) where T : Object
     {
         Array values = Enum.GetValues(type);
         Object[] newView = new Object[values.Length];
-        view.Add(typeof(T), newView);
+        views.Add(typeof(T), newView);
 
         for (int index = 0; index < values.Length; ++index)
         {
@@ -30,7 +30,7 @@ public abstract class UserInterface : MonoBehaviour
 
     protected T Get<T>(int index) where T : Object
     {
-        if (view.TryGetValue(typeof(T), out Object[] newView))
+        if (views.TryGetValue(typeof(T), out Object[] newView))
         {
             if (index < 0 || index >= newView.Length)
                 throw new IndexOutOfRangeException();

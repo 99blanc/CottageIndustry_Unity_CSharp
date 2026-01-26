@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class UIManager
 {
-    private Stack<UIPopup> popupStack = new();
-    private GameObject container = new(Define.ROOT);
     private readonly Vector3 DEFAULT_SCALE = Vector3.one;
-    private int currentCanvasOrder = -20;
+    private Stack<UIPopup> popups = new();
+    private GameObject container = new(Define.ROOT);
+    private int curCanvasOrder = -20;
 
-    public void Init() => popupStack.Clear();
+    public void Init() => popups.Clear();
 
     public void SetCanvas(GameObject gameObject, bool sort = true)
     {
@@ -19,8 +19,8 @@ public class UIManager
 
         if (sort)
         {
-            canvas.sortingOrder = currentCanvasOrder;
-            currentCanvasOrder += 1;
+            canvas.sortingOrder = curCanvasOrder;
+            curCanvasOrder += 1;
             return;
         }
 
@@ -30,7 +30,7 @@ public class UIManager
     public async UniTask<T> OpenPopup<T>(Transform parent = null) where T : UIPopup
     {
         T popup = await SetupUI<T>(parent);
-        popupStack.Push(popup);
+        popups.Push(popup);
         return popup;
     }
 
@@ -56,7 +56,7 @@ public class UIManager
 
     public void ClosePopup(UIPopup popup)
     {
-        if (popupStack.Count == 0 || popupStack.Peek() != popup)
+        if (popups.Count == 0 || popups.Peek() != popup)
             return;
 
         ClosePopup();
@@ -64,17 +64,17 @@ public class UIManager
 
     public void ClosePopup()
     {
-        if (popupStack.Count == 0)
+        if (popups.Count == 0)
             return;
 
-        UIPopup popup = popupStack.Pop();
+        UIPopup popup = popups.Pop();
         Managers.Resource.Destroy(popup.gameObject);
-        currentCanvasOrder -= 1;
+        curCanvasOrder -= 1;
     }
 
     public void CloseAllPopup()
     {
-        while (popupStack.Count > 0)
+        while (popups.Count > 0)
             ClosePopup();
     }
 }

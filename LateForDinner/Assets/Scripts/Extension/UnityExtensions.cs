@@ -6,7 +6,7 @@ using Object = UnityEngine.Object;
 
 public static class UnityExtensions
 {
-    private static readonly List<Component> cache = new(64);
+    public static readonly List<Component> Caches = new(64);
 
     public static T FindChild<T>(this GameObject gameObject, string name = null, bool recursive = false) where T : Object
     {
@@ -15,16 +15,16 @@ public static class UnityExtensions
 
         if (recursive)
         {
-            lock (cache)
+            lock (Caches)
             {
-                cache.Clear();
-                gameObject.GetComponentsInChildren<T>(true, (List<T>)(object)cache);
+                Caches.Clear();
+                gameObject.GetComponentsInChildren<T>(true, (List<T>)(object)Caches);
 
-                for (int index = 0; index < cache.Count; ++index)
+                for (int index = 0; index < Caches.Count; ++index)
                 {
-                    Object component = cache[index];
+                    Object component = Caches[index];
 
-                    if (string.IsNullOrEmpty(name) || ZString.Equals(name, cache[index].name))
+                    if (string.IsNullOrEmpty(name) || ZString.Equals(name, Caches[index].name))
                         return component as T;
                 }
 
@@ -57,10 +57,10 @@ public static class UnityExtensions
         return newTransform;
     }
 
-    public static T GetOrAddComponentAssert<T>(this GameObject go) where T : Component
+    public static T GetOrAddComponentAssert<T>(this GameObject gameObject) where T : Component
     {
-        if (!go.TryGetComponent<T>(out T component))
-            component = go.AddComponent<T>();
+        if (!gameObject.TryGetComponent<T>(out T component))
+            component = gameObject.AddComponent<T>();
 
         Debug.Assert(component);
         return component;

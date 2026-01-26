@@ -11,8 +11,6 @@ public class CharacterControl : MonoBehaviour
     private Character<Component> character;
     private Rigidbody2D rBody;
     private CapsuleCollider2D cCollider;
-    private CompositeDisposable inputDisposable = new();
-    private short currentDashStack;
     private short currentJumpCount;
     private Vector2 moveInput;
 
@@ -27,8 +25,7 @@ public class CharacterControl : MonoBehaviour
 
     public void Init()
     {
-        currentDashStack = character.module.dashCount.Value;
-        BindInputAction(Managers.Config.ActMap);
+        BindInputAction(Managers.Config.actMap);
         this.FixedUpdateAsObservable().Subscribe(_ => { ApplyMovement(); ApplyFallGravity(); CheckGround(); }).AddTo(this);
     }
 
@@ -36,16 +33,16 @@ public class CharacterControl : MonoBehaviour
     private void OnMoveCanceled(InputAction.CallbackContext context) => moveInput = Vector2.zero;
     private void OnJump(InputAction.CallbackContext context)
     {
-        if (currentJumpCount >= character.module.jumpCount.Value) 
+        if (currentJumpCount >= character.stats.jumpCount.Value) 
             return;
 
         ++currentJumpCount;
-        rBody.linearVelocity = new Vector2(rBody.linearVelocity.x, character.module.jumpForce.Value);
+        rBody.linearVelocity = new Vector2(rBody.linearVelocity.x, character.stats.jumpForce.Value);
     }
 
     private void ApplyMovement()
     {
-        float targetSpeed = moveInput.x * character.module.moveSpeed.Value;
+        float targetSpeed = moveInput.x * character.stats.moveSpeed.Value;
         float currentXVelocity = rBody.linearVelocity.x;
         float lerpTime = moveInput.x != 0 ? 4f : 2f;
         float newXVelocity = Mathf.Lerp(currentXVelocity, targetSpeed, Time.fixedDeltaTime * lerpTime);

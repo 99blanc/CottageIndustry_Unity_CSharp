@@ -9,13 +9,13 @@ using UnityEngine;
 
 public class DataManager
 {
-    public Dictionary<CharacterID, CharacterData> Character { get; private set; }
+    public Dictionary<CharacterID, CharacterData> characters { get; private set; }
     
     public async UniTask Init()
     {
         TextAsset cTable = await Managers.Resource.LoadTextAsset(Define.Asset.FILE_CHARACTER);
         await UniTask.Yield(PlayerLoopTiming.Update);
-        Character = ParseToDictionary<CharacterID, CharacterData>(cTable.text, data => data.id);
+        characters = ParseToDictionary<CharacterID, CharacterData>(cTable.text, data => data.id);
     }
 
     private List<T> ParseToList<T>(string text)

@@ -9,13 +9,13 @@ using UnityEngine.InputSystem;
 
 public class ResourceManager
 {
-    public Dictionary<string, AsyncOperationHandle> Handle = new();
+    public Dictionary<string, AsyncOperationHandle> handles = new();
 
-    public void Init() => Handle.Clear();
+    public void Init() => handles.Clear();
 
     private async UniTask<T> Load<T>(string path) where T : Object
     {
-        if (Handle.TryGetValue(path, out AsyncOperationHandle handle))
+        if (handles.TryGetValue(path, out AsyncOperationHandle handle))
         {
             if (handle.IsDone)
                 return handle.Convert<T>().Result;
@@ -25,7 +25,7 @@ public class ResourceManager
         }
 
         AsyncOperationHandle<T> asyncHandle = Addressables.LoadAssetAsync<T>(path);
-        Handle[path] = asyncHandle;
+        handles[path] = asyncHandle;
         return await asyncHandle.ToUniTask();
     }
 
@@ -51,10 +51,10 @@ public class ResourceManager
 
     public void Unload(string path)
     {
-        if (Handle.TryGetValue(path, out AsyncOperationHandle handle))
+        if (handles.TryGetValue(path, out AsyncOperationHandle handle))
         {
             Addressables.Release(handle);
-            Handle.Remove(path);
+            handles.Remove(path);
         }
     }
 

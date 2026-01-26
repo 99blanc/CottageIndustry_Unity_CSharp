@@ -11,14 +11,14 @@ public static class Utils
         Debug.Assert(original);
         InputActionAsset copy = Object.Instantiate(original);
         Debug.Assert(copy);
-        Config config = Managers.Config.Current;
-        bool hasSavedData = !string.IsNullOrEmpty(config.Controls.RawKeybindData);
-        string bindJson = hasSavedData ? config.Controls.RawKeybindData : copy.SaveBindingOverridesAsJson();
+        Config config = Managers.Config.curConfig;
+        bool hasSavedData = !string.IsNullOrEmpty(config.control.keybind);
+        string bindJson = hasSavedData ? config.control.keybind : copy.SaveBindingOverridesAsJson();
         copy.LoadBindingOverridesFromJson(bindJson);
 
         if (!hasSavedData)
         {
-            config.Controls = new ControlConfig { RawKeybindData = bindJson };
+            config.control = new ControlConfig { keybind = bindJson };
             await Managers.Config.SaveProfile(config);
         }
 

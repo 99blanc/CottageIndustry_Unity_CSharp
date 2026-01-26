@@ -7,22 +7,22 @@ using UnityEngine.InputSystem;
 public class ConfigManager
 {
     private readonly string SAVE_PATH = System.IO.Path.Combine(Application.persistentDataPath, ZString.Concat(Define.PROFILE));
-    public Config Current { get; private set; }
-    public InputActionAsset ActAsset { get; private set; }
-    public InputActionMap ActMap { get; private set; }
+    public Config curConfig { get; private set; }
+    public InputActionAsset actAsset { get; private set; }
+    public InputActionMap actMap { get; private set; }
 
     public async UniTask Init()
     {
-        Current = await GetProfile() ?? new Config();
-        ActAsset = await Utils.SetupInputAsset();
+        curConfig = await GetProfile() ?? new Config();
+        actAsset = await Utils.SetupInputAsset();
 
-        if (!ActAsset)
+        if (!actAsset)
             return;
 
-        if (!string.IsNullOrEmpty(Current.Controls.RawKeybindData))
-            ActAsset.LoadBindingOverridesFromJson(Current.Controls.RawKeybindData);
+        if (!string.IsNullOrEmpty(curConfig.control.keybind))
+            actAsset.LoadBindingOverridesFromJson(curConfig.control.keybind);
 
-        ActMap = ActAsset.FindActionMap(Define.Input.MAP_USER);
+        actMap = actAsset.FindActionMap(Define.Input.MAP_USER);
     }
 
     public async UniTask<Config> GetProfile()
@@ -58,7 +58,7 @@ public class ConfigManager
             else
                 System.IO.File.Move(path, SAVE_PATH);
 
-            Current = config;
+            curConfig = config;
         }
         catch (System.Exception)
         {
@@ -70,7 +70,7 @@ public class ConfigManager
     public void OnDestroy(InputActionAsset asset = null)
     {
         if (!asset)
-            asset = ActAsset;
+            asset = actAsset;
 
         if (asset)
         {

@@ -2,5 +2,5 @@ using UnityEngine;
 
 public interface IStat<T> where T : Component
 {
-    public StatModule module { get; set; }
+    public StatModule stats { get; set; }
 }
