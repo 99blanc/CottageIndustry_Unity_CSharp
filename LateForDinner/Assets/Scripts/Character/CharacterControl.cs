@@ -13,6 +13,7 @@ public class CharacterControl : MonoBehaviour
     private CapsuleCollider2D cCollider;
     private short currentJumpCount;
     private Vector2 moveInput;
+    private bool isNearGround;
 
     private void Awake()
     {
@@ -33,11 +34,20 @@ public class CharacterControl : MonoBehaviour
     private void OnMoveCanceled(InputAction.CallbackContext context) => moveInput = Vector2.zero;
     private void OnJump(InputAction.CallbackContext context)
     {
-        if (currentJumpCount >= character.stats.jumpCount.Value) 
-            return;
+        if (isNearGround && currentJumpCount == 0)
+        {
+            currentJumpCount = 1;
+        }
+        else
+        {
+            if (currentJumpCount >= character.stats.jumpCount.Value)
+                return;
 
-        ++currentJumpCount;
+            ++currentJumpCount;
+        }
+
         rBody.linearVelocity = new Vector2(rBody.linearVelocity.x, character.stats.jumpForce.Value);
+        isNearGround = false;
     }
 
     private void ApplyMovement()
@@ -64,7 +74,15 @@ public class CharacterControl : MonoBehaviour
         bool isGrounded = (hit.collider is not null && rBody.linearVelocity.y <= 0.025f) ? true : false;
 
         if (isGrounded)
+        {
             currentJumpCount = 0;
+            isNearGround = true;
+        }
+        else
+        {
+            RaycastHit2D nearHit = Physics2D.Raycast(transform.position, Vector2.down, 0.2f, LayerMask.GetMask(Define.Layer.GROUND));
+            isNearGround = nearHit.collider is not null;
+        }
     }
 
     private void OnDestroy()
