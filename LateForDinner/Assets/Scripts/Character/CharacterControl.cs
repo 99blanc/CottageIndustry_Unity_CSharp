@@ -44,7 +44,7 @@ public class CharacterControl : MonoBehaviour
     {
         float targetSpeed = moveInput.x * character.stats.moveSpeed.Value;
         float currentXVelocity = rBody.linearVelocity.x;
-        float lerpTime = moveInput.x != 0 ? 4f : 2f;
+        float lerpTime = moveInput.x != 0 ? 4f : 3.5f;
         float newXVelocity = Mathf.Lerp(currentXVelocity, targetSpeed, Time.fixedDeltaTime * lerpTime);
         rBody.linearVelocity = new Vector2(newXVelocity, rBody.linearVelocity.y);
 
