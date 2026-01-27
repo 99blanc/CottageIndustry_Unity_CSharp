@@ -34,18 +34,12 @@ public class CharacterControl : MonoBehaviour
     private void OnMoveCanceled(InputAction.CallbackContext context) => moveInput = Vector2.zero;
     private void OnJump(InputAction.CallbackContext context)
     {
-        if (isNearGround && currentJumpCount == 0)
-        {
-            currentJumpCount = 1;
-        }
-        else
-        {
-            if (currentJumpCount >= character.stats.jumpCount.Value)
-                return;
+        int newJumpCount = isNearGround ? 1 : currentJumpCount + 1;
 
-            ++currentJumpCount;
-        }
+        if (newJumpCount > character.stats.jumpCount.Value)
+            return;
 
+        currentJumpCount = (short)newJumpCount;
         rBody.linearVelocity = new Vector2(rBody.linearVelocity.x, character.stats.jumpForce.Value);
         isNearGround = false;
     }
@@ -77,12 +71,11 @@ public class CharacterControl : MonoBehaviour
         {
             currentJumpCount = 0;
             isNearGround = true;
+            return;
         }
-        else
-        {
-            RaycastHit2D nearHit = Physics2D.Raycast(transform.position, Vector2.down, 0.2f, LayerMask.GetMask(Define.Layer.GROUND));
-            isNearGround = nearHit.collider is not null;
-        }
+
+        RaycastHit2D nearHit = Physics2D.Raycast(transform.position, Vector2.down, 0.2f, LayerMask.GetMask(Define.Layer.GROUND));
+        isNearGround = nearHit.collider is not null;
     }
 
     private void OnDestroy()
