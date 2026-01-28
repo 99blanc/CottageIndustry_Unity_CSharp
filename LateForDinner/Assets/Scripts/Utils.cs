@@ -1,4 +1,3 @@
-using Cysharp.Text;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,7 +18,7 @@ public static class Utils
         if (!hasSavedData)
         {
             config.control = new ControlConfig { keybind = bindJson };
-            await Managers.Config.SaveProfile(config);
+            await Managers.Config.SetConfig(config);
         }
 
         SyncMoveToDashBindings(copy);
@@ -36,7 +35,7 @@ public static class Utils
         if (moveAction is null || dashAction is null) 
             return;
 
-        foreach (InputBinding moveBinding in moveAction.bindings)
+        foreach (var moveBinding in moveAction.bindings)
         {
             if (moveBinding.isComposite) 
                 continue;
