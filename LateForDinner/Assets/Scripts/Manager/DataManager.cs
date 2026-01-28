@@ -1,34 +1,44 @@
 using CsvHelper;
-using ZLinq;
+using CsvHelper.Configuration;
 using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using UnityEngine;
+using System.Linq;
+using ZLinq;
 
 public class DataManager
 {
-    public Dictionary<CharacterID, CharacterData> characters { get; private set; }
-    
+    public Dictionary<PlayerID, PlayerData> players { get; private set; }
+
+    private readonly CsvConfiguration csvConfig = new(CultureInfo.InvariantCulture) 
+    {
+        HasHeaderRecord = true,
+        AllowComments = true,
+        Comment = '#',
+    };
+
+
+
     public async UniTask Init()
     {
-        TextAsset cTable = await Managers.Resource.LoadTextAsset(Define.Asset.FILE_CHARACTER);
+        var cTable = await Managers.Resource.LoadTextAsset(Define.Asset.FILE_PLAYER);
         await UniTask.Yield(PlayerLoopTiming.Update);
-        characters = ParseToDictionary<CharacterID, CharacterData>(cTable.text, data => data.id);
+        players = ParseToDictionary<PlayerID, PlayerData>(cTable.text, data => data.id);
     }
 
     private List<T> ParseToList<T>(string text)
     {
-        using StringReader reader = new StringReader(text);
-        using CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+        using var reader = new StringReader(text);
+        using var csv = new CsvReader(reader, csvConfig);
         return csv.GetRecords<T>().AsValueEnumerable().ToList();
     }
 
     private Dictionary<TKey, TItem> ParseToDictionary<TKey, TItem>(string text, Func<TItem, TKey> key)
     {
-        using StringReader reader = new StringReader(text);
-        using CsvReader csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+        using var reader = new StringReader(text);
+        using var csv = new CsvReader(reader, csvConfig);
         return csv.GetRecords<TItem>().AsValueEnumerable().ToDictionary(key);
     }
 }

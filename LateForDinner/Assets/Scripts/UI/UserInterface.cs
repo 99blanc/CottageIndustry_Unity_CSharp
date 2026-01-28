@@ -17,8 +17,8 @@ public abstract class UserInterface : MonoBehaviour
 
     protected void Bind<T>(Type type) where T : Object
     {
-        Array values = Enum.GetValues(type);
-        Object[] newView = new Object[values.Length];
+        var values = Enum.GetValues(type);
+        var newView = new Object[values.Length];
         views.Add(typeof(T), newView);
 
         for (int index = 0; index < values.Length; ++index)

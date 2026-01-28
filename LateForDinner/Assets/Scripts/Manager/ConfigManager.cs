@@ -3,17 +3,19 @@ using Cysharp.Threading.Tasks;
 using MemoryPack;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.IO;
 
 public class ConfigManager
 {
-    private readonly string SAVE_PATH = System.IO.Path.Combine(Application.persistentDataPath, ZString.Concat(Define.PROFILE));
+    private readonly string SAVE_PATH = Path.Combine(Application.persistentDataPath, ZString.Concat(Define.USER, Define.CONFIG));
+    private readonly string TEMP_PATH = Path.Combine(Application.persistentDataPath, ZString.Concat(Define.USER, Define.TEMP));
     public Config curConfig { get; private set; }
     public InputActionAsset actAsset { get; private set; }
     public InputActionMap actMap { get; private set; }
 
     public async UniTask Init()
     {
-        curConfig = await GetProfile() ?? new Config();
+        curConfig = await GetConfig() ?? new Config();
         actAsset = await Utils.SetupInputAsset();
 
         if (!actAsset)
@@ -25,45 +27,47 @@ public class ConfigManager
         actMap = actAsset.FindActionMap(Define.Input.MAP_USER);
     }
 
-    public async UniTask<Config> GetProfile()
+    public async UniTask<Config> GetConfig()
     {
-        if (!System.IO.File.Exists(SAVE_PATH))
+        if (!File.Exists(SAVE_PATH) && File.Exists(TEMP_PATH))
+            File.Move(TEMP_PATH, SAVE_PATH);
+
+        if (!File.Exists(SAVE_PATH))
             return null;
 
         try
         {
-            byte[] data = await System.IO.File.ReadAllBytesAsync(SAVE_PATH);
+            byte[] data = await File.ReadAllBytesAsync(SAVE_PATH);
             return MemoryPackSerializer.Deserialize<Config>(data);
         }
         catch (System.Exception)
         {
-            if (System.IO.File.Exists(SAVE_PATH))
-                System.IO.File.Delete(SAVE_PATH);
+            if (File.Exists(SAVE_PATH))
+                File.Delete(SAVE_PATH);
 
             return null;
         }
     }
 
-    public async UniTask SaveProfile(Config config)
+    public async UniTask SetConfig(Config config)
     {
         byte[] data = MemoryPackSerializer.Serialize(config);
-        string path = ZString.Concat(SAVE_PATH, Define.TEMP);
 
         try
         {
-            await System.IO.File.WriteAllBytesAsync(path, data);
+            await File.WriteAllBytesAsync(TEMP_PATH, data);
 
-            if (System.IO.File.Exists(SAVE_PATH))
-                System.IO.File.Replace(path, SAVE_PATH, null);
+            if (File.Exists(SAVE_PATH))
+                File.Replace(TEMP_PATH, SAVE_PATH, null);
             else
-                System.IO.File.Move(path, SAVE_PATH);
+                File.Move(TEMP_PATH, SAVE_PATH);
 
             curConfig = config;
         }
         catch (System.Exception)
         {
-            if (System.IO.File.Exists(path))
-                System.IO.File.Delete(path);
+            if (File.Exists(TEMP_PATH))
+                File.Delete(TEMP_PATH);
         }
     }
 

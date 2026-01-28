@@ -22,7 +22,7 @@ public static class UnityExtensions
 
                 for (int index = 0; index < Caches.Count; ++index)
                 {
-                    Object component = Caches[index];
+                    var component = Caches[index];
 
                     if (string.IsNullOrEmpty(name) || ZString.Equals(name, Caches[index].name))
                         return component as T;
@@ -35,7 +35,7 @@ public static class UnityExtensions
         {
             for (int index = 0; index < gameObject.transform.childCount; ++index)
             {
-                Transform child = gameObject.transform.GetChild(index);
+                var child = gameObject.transform.GetChild(index);
 
                 if (!string.IsNullOrEmpty(name) && !ZString.Equals(name, child.name))
                     continue;
@@ -52,7 +52,7 @@ public static class UnityExtensions
 
     public static Transform FindAssert(this Transform transform, string name)
     {
-        Transform newTransform = transform.Find(name);
+        var newTransform = transform.Find(name);
         Debug.Assert(newTransform);
         return newTransform;
     }
@@ -62,21 +62,35 @@ public static class UnityExtensions
         if (!gameObject.TryGetComponent<T>(out T component))
             component = gameObject.AddComponent<T>();
 
-        Debug.Assert(component);
+        Debug.Assert(component is not null);
         return component;
     }
 
-    public static T GetComponentAssert<T>(this GameObject gameObject) where T : Component
+    public static T GetComponentAssert<T>(this GameObject gameObject)
     {
         T component = gameObject.GetComponent<T>();
-        Debug.Assert(component);
+        Debug.Assert(component is not null);
         return component;
     }
 
-    public static T GetComponentAssert<T>(this Transform transform) where T : Component
+    public static T GetComponentAssert<T>(this Transform transform)
     {
         T component = transform.GetComponent<T>();
-        Debug.Assert(component);
+        Debug.Assert(component is not null);
         return component;
+    }
+
+    public static T[] GetComponentsAssert<T>(this GameObject gameObject)
+    {
+        T[] components = gameObject.GetComponents<T>();
+        Debug.Assert(components is not null && components.Length > 0);
+        return components;
+    }
+
+    public static T[] GetComponentsAssert<T>(this Transform transform)
+    {
+        T[] components = transform.GetComponents<T>();
+        Debug.Assert(components is not null && components.Length > 0);
+        return components;
     }
 }

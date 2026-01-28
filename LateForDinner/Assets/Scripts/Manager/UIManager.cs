@@ -13,7 +13,7 @@ public class UIManager
 
     public void SetCanvas(GameObject gameObject, bool sort = true)
     {
-        Canvas canvas = gameObject.GetComponentAssert<Canvas>();
+        var canvas = gameObject.GetComponentAssert<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.overrideSorting = true;
 
@@ -38,14 +38,14 @@ public class UIManager
 
     private async UniTask<T> SetupUI<T>(Transform parent = null) where T : UserInterface
     {
-        GameObject prefab = await Managers.Resource.LoadPrefab(typeof(T).Name);
-        GameObject gameObject = Managers.Resource.Instantiate(prefab);
+        var prefab = await Managers.Resource.LoadPrefab(typeof(T).Name);
+        var gameObject = Managers.Resource.Instantiate(prefab);
         T UI = gameObject.GetComponentAssert<T>();
         UI.Init();
-        Transform transform = gameObject.transform;
+        var transform = gameObject.transform;
         transform.localScale = DEFAULT_SCALE;
         transform.localPosition = prefab.transform.position;
-        Transform targetParent = parent is null ? container.transform : parent;
+        var targetParent = parent is null ? container.transform : parent;
         transform.SetParent(targetParent);
 
         if (UI is UIPopup)
@@ -67,7 +67,7 @@ public class UIManager
         if (popups.Count == 0)
             return;
 
-        UIPopup popup = popups.Pop();
+        var popup = popups.Pop();
         Managers.Resource.Destroy(popup.gameObject);
         curCanvasOrder -= 1;
     }

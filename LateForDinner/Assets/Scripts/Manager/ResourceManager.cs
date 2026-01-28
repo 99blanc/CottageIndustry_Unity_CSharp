@@ -24,7 +24,7 @@ public class ResourceManager
             return handle.Convert<T>().Result;
         }
 
-        AsyncOperationHandle<T> asyncHandle = Addressables.LoadAssetAsync<T>(path);
+        var asyncHandle = Addressables.LoadAssetAsync<T>(path);
         handles[path] = asyncHandle;
         return await asyncHandle.ToUniTask();
     }
@@ -37,14 +37,14 @@ public class ResourceManager
 
     public async UniTask<GameObject> Instantiate(string path, Transform parent = null)
     {
-        GameObject prefab = await LoadPrefab(path);
+        var prefab = await LoadPrefab(path);
         Debug.Assert(prefab);
         return Instantiate(prefab, parent);
     }
 
     public GameObject Instantiate(GameObject prefab, Transform parent = null)
     {
-        GameObject gameObject = Object.Instantiate(prefab, parent);
+        var gameObject = Object.Instantiate(prefab, parent);
         gameObject.name = prefab.name;
         return gameObject;
     }
