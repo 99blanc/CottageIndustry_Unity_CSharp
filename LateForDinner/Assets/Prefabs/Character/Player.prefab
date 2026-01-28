@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 954680861345364111}
   - component: {fileID: 6436126220173525312}
   - component: {fileID: 856552280064150257}
-  - component: {fileID: 7239147713792101618}
+  - component: {fileID: 6498932194244417114}
   m_Layer: 0
-  m_Name: Base
+  m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -155,10 +155,10 @@ Rigidbody2D:
     serializedVersion: 2
     m_Bits: 0
   m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_SleepingMode: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
---- !u!114 &7239147713792101618
+--- !u!114 &6498932194244417114
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -167,6 +167,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 5182811538466173597}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3be7fc0df1885ae47b75fc4e4bd36ac9, type: 3}
+  m_Script: {fileID: 11500000, guid: 6d2b5d0a9ec1e0446b035f8a1c78bd37, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::DefaultCharacter
+  m_EditorClassIdentifier: Assembly-CSharp::Player
