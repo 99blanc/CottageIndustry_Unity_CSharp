@@ -97,10 +97,13 @@ namespace LateForDinner.Data
         public Vector2 PlayerPosition;
         public float PlayerRotation;
         public bool PlayerFlipX;
-        public List<InventorySlot> InventorySlots;
+        public List<InventorySlot> TotalSlots;
+        public List<InventorySlot> EquipmentTabSlots;
+        public List<InventorySlot> ConsumptionTabSlots;
+        public List<InventorySlot> EtcTabSlots;
         public List<InventorySlot> EquipmentSlots;
-        public List<WeaponSave> UnlockedWeapons;
         public List<InventorySlot> QuickSlots;
+        public List<WeaponSave> UnlockedWeapons;
         public float Gold;
 
         [MemoryPackIgnore]
@@ -121,10 +124,13 @@ namespace LateForDinner.Data
             PlayerPosition = Vector2.zero,
             PlayerRotation = 0f,
             PlayerFlipX = false,
-            InventorySlots = Enumerable.Range(0, Define.Amount.MaxInventorySlot).Select(i => new InventorySlot { GlobalIndex = i, SlotIndex = i % Define.Amount.InventoryTabSize, ItemID = 0, Quantity = 0 }).ToList(),
+            TotalSlots = Enumerable.Range(0, Define.Amount.MaxInventorySlot).Select(i => new InventorySlot { GlobalIndex = i, SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
+            EquipmentTabSlots = Enumerable.Range(0, Define.Amount.InventoryTabSize).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
+            ConsumptionTabSlots = Enumerable.Range(0, Define.Amount.InventoryTabSize).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
+            EtcTabSlots = Enumerable.Range(0, Define.Amount.InventoryTabSize).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
             EquipmentSlots = Enumerable.Range(0, Define.Amount.MaxEquipmentSlot).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
-            UnlockedWeapons = new List<WeaponSave>(),
             QuickSlots = Enumerable.Range(0, Define.Amount.MaxQuickSlot).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
+            UnlockedWeapons = new List<WeaponSave>(),
             Gold = 0f
         };
     }

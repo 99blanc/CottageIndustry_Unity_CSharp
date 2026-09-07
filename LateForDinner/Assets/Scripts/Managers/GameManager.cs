@@ -15,7 +15,7 @@ public class GameManager
             await load.LoadAsync(0.2f, LocalizationKey.Log_Game_Loading_SaveData);
             await Managers.Save.LoadAsync(slotIndex);
             var data = Managers.Save.CurrentData;
-            Managers.Inventory.InitInventory(data.InventorySlots, data.QuickSlots, data.EquipmentSlots);
+            Managers.Inventory.InitInventory(data.TotalSlots, data.EquipmentTabSlots, data.ConsumptionTabSlots, data.EtcTabSlots, data.EquipmentSlots, data.QuickSlots);
             await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
             await PrepareAndSpawnPlayerAsync(forceTransition: true);
             await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
@@ -36,7 +36,7 @@ public class GameManager
             await load.LoadAsync(0.2f, LocalizationKey.Log_Game_Loading_NewData);
             Managers.Save.Newgame(slotIndex);
             var data = Managers.Save.CurrentData;
-            Managers.Inventory.InitInventory(data.InventorySlots, data.QuickSlots, data.EquipmentSlots);
+            Managers.Inventory.InitInventory(data.TotalSlots, data.EquipmentTabSlots, data.ConsumptionTabSlots, data.EtcTabSlots, data.EquipmentSlots, data.QuickSlots);
             await Managers.Save.SaveAsync();
             await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
             await PrepareAndSpawnPlayerAsync();
@@ -61,7 +61,7 @@ public class GameManager
                 Managers.Save.SetDebugDefaultData();
 
             var data = Managers.Save.CurrentData;
-            Managers.Inventory.InitInventory(data.InventorySlots, data.QuickSlots, data.EquipmentSlots);
+            Managers.Inventory.InitInventory(data.TotalSlots, data.EquipmentTabSlots, data.ConsumptionTabSlots, data.EtcTabSlots, data.EquipmentSlots, data.QuickSlots);
             Managers.Save.CurrentData.CurrentSceneID = targetSceneID;
             await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
             await PrepareAndSpawnPlayerAsync(forceTransition: true);

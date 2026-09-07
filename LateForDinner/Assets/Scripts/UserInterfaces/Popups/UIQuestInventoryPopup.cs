@@ -1,5 +1,6 @@
 using LateForDinner.Data;
 using R3;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.EventSystems;
@@ -7,58 +8,58 @@ using ZLinq;
 
 public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
 {
-    private enum RectTransforms 
-    { 
-        EquipmentContent 
+    private enum RectTransforms
+    {
+        EquipmentContent
     }
 
     private enum Images
     {
-        AttributeButtonImage, 
-        TotalButtonImage, 
+        AttributeButtonImage,
+        TotalButtonImage,
         EquipmentButtonImage,
-        ConsumptionButtonImage, 
-        EtcButtonImage, 
+        ConsumptionButtonImage,
+        EtcButtonImage,
         SortButtonImage,
         ScrollUpArrowImage,
-        ScrollDownArrowImage, 
+        ScrollDownArrowImage,
         MealTimeImage
     }
 
     private enum Texts
     {
-        AttributeTabText, 
-        HealthTabText, 
-        JumpForceTabText, 
+        AttributeTabText,
+        HealthTabText,
+        JumpForceTabText,
         JumpCountTabText,
-        DashDistanceTabText, 
-        MoveSpeedTabText, 
-        DamageTabText, 
+        DashDistanceTabText,
+        MoveSpeedTabText,
+        DamageTabText,
         AttackSpeedTabText,
-        GoldText, 
+        GoldText,
         DayText
     }
 
     private enum Buttons
     {
-        AttributeButton, 
-        TotalButton, 
-        EquipmentButton, 
+        AttributeButton,
+        TotalButton,
+        EquipmentButton,
         ConsumptionButton,
-        EtcButton, 
-        SortButton, 
-        ScrollUpButton, 
+        EtcButton,
+        SortButton,
+        ScrollUpButton,
         ScrollDownButton
     }
 
-    private enum ScrollRects 
-    { 
-        InventoryScrollRect 
+    private enum ScrollRects
+    {
+        InventoryScrollRect
     }
 
-    private enum Panels 
+    private enum Panels
     {
-        AttributePanel 
+        AttributePanel
     }
 
     private readonly ReactiveProperty<ButtonState> _attributeButtonState = new ReactiveProperty<ButtonState>(ButtonState.Normal);
@@ -161,24 +162,43 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
 
     private void RefreshInventory(ItemType? type)
     {
-        var allSlots = Managers.Inventory.GetSlotsByType(null).ToList();
-        int tabSize = Define.Amount.InventoryTabSize;
-        int startIndex = type.HasValue ? Managers.Inventory.GetTabStartIndex(type.Value) : 0;
-        int displayCount = type.HasValue ? tabSize : Define.Amount.MaxInventorySlot;
+        var displaySlots = Managers.Inventory.GetSlotsByType(type).ToList();
 
         for (int index = 0; index < _createdSlots.Count; index++)
         {
-            if (index < displayCount)
-            {
-                _createdSlots[index].SetActive(true);
-                int dataIndex = type.HasValue ? startIndex + index : index;
+            var targetSlot = _createdSlots[index];
 
-                if (dataIndex < allSlots.Count)
-                    _createdSlots[index].Setup(index, allSlots[dataIndex], false);
+            if (index >= displaySlots.Count)
+            {
+                targetSlot.SetActive(false);
+                continue;
             }
+
+            var slotData = displaySlots[index];
+            targetSlot.SetActive(true);
+
+            if (IsFilteredOut(slotData, type))
+                targetSlot.SetupAsFilteredOut(index, slotData);
             else
-                _createdSlots[index].SetActive(false);
+                targetSlot.Setup(index, slotData, false);
         }
+    }
+
+    private bool IsFilteredOut(InventorySlot slotData, ItemType? type)
+    {
+        if (!type.HasValue) 
+            return false;
+
+        if (slotData.ItemID <= 0) 
+            return false;
+
+        if (!Managers.Data.Items.TryGetValue(slotData.ItemID, out var itemData)) 
+            return false;
+
+        if (!Enum.TryParse<ItemType>(itemData.ItemType, true, out var parsedItemType)) 
+            return false;
+
+        return parsedItemType != type.Value;
     }
 
     private void RefreshEquipmentSlots()
@@ -223,43 +243,43 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         _isAttributePanelOpen = !GetPanel(Panels.AttributePanel).IsActive();
         GetPanel(Panels.AttributePanel).SetActive(_isAttributePanelOpen);
 
-        if (_isAttributePanelOpen) 
+        if (_isAttributePanelOpen)
             RefreshPlayerInfo();
     }
 
-    private void OnClickTotalTab(PointerEventData data) 
-    { 
-        _currentTabType = null; 
-        RefreshInventory(_currentTabType); 
-    }
-
-    private void OnClickEquipmentTab(PointerEventData data) 
-    { 
-        _currentTabType = ItemType.Equipment; 
-        RefreshInventory(_currentTabType); 
-    }
-
-    private void OnClickConsumptionTab(PointerEventData data) 
+    private void OnClickTotalTab(PointerEventData data)
     {
-        _currentTabType = ItemType.Consumption; 
-        RefreshInventory(_currentTabType); 
+        _currentTabType = null;
+        RefreshInventory(_currentTabType);
     }
 
-    private void OnClickEtcTab(PointerEventData data) 
-    { 
-        _currentTabType = ItemType.Etc; 
-        RefreshInventory(_currentTabType); 
+    private void OnClickEquipmentTab(PointerEventData data)
+    {
+        _currentTabType = ItemType.Equipment;
+        RefreshInventory(_currentTabType);
     }
 
-    private void OnClickSortTab(PointerEventData data) 
-    { 
-        Managers.Inventory.SortInventory(_currentTabType); 
-        Refresh(); 
+    private void OnClickConsumptionTab(PointerEventData data)
+    {
+        _currentTabType = ItemType.Consumption;
+        RefreshInventory(_currentTabType);
     }
 
-    private void OnClickScrollUp(PointerEventData data) 
+    private void OnClickEtcTab(PointerEventData data)
+    {
+        _currentTabType = ItemType.Etc;
+        RefreshInventory(_currentTabType);
+    }
+
+    private void OnClickSortTab(PointerEventData data)
+    {
+        Managers.Inventory.SortInventory(_currentTabType);
+        Refresh();
+    }
+
+    private void OnClickScrollUp(PointerEventData data)
         => GetScrollRect(ScrollRects.InventoryScrollRect).verticalNormalizedPosition = 1f;
 
-    private void OnClickScrollDown(PointerEventData data) 
+    private void OnClickScrollDown(PointerEventData data)
         => GetScrollRect(ScrollRects.InventoryScrollRect).verticalNormalizedPosition = 0f;
 }

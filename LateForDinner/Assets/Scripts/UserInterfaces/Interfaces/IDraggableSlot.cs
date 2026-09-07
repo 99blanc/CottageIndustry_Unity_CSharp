@@ -20,10 +20,8 @@ public interface IDraggableSlot<TTarget> : IBeginDragHandler, IDragHandler, IEnd
     }
     Sprite DragSprite { get; }
     SlotArea CurrentSlotArea { get; }
-    int CurrentQuantity => 1;
-    string QuantityText => string.Empty;
 
-    void OnMoveItem(TTarget targetSlot);
+    void OnDropItem(TTarget targetSlot);
 
     void IBeginDragHandler.OnBeginDrag(PointerEventData data)
     {
@@ -31,7 +29,6 @@ public interface IDraggableSlot<TTarget> : IBeginDragHandler, IDragHandler, IEnd
             return;
 
         var sprite = DragSprite;
-
         if (sprite == null)
             return;
 
@@ -84,7 +81,6 @@ public interface IDraggableSlot<TTarget> : IBeginDragHandler, IDragHandler, IEnd
         foreach (var result in raycastResults)
         {
             var slot = result.gameObject.GetComponentInParent<TTarget>();
-
             if (slot != null && slot != (Component)this)
             {
                 targetSlot = slot;
@@ -99,7 +95,7 @@ public interface IDraggableSlot<TTarget> : IBeginDragHandler, IDragHandler, IEnd
         }
 
         if (targetSlot != null)
-            OnMoveItem(targetSlot);
+            OnDropItem(targetSlot);
 
         state.IsDragging = false;
     }

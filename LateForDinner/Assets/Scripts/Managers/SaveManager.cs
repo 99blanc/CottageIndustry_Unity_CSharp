@@ -226,9 +226,12 @@ public class SaveManager
 
         if (Managers.Inventory != null)
         {
-            CurrentData.InventorySlots = Managers.Inventory.ExportSaveData();
-            CurrentData.QuickSlots = Managers.Inventory.ExportQuickSlotSaveData();
+            CurrentData.TotalSlots = Managers.Inventory.ExportTotalSlotSaveData();
+            CurrentData.EquipmentTabSlots = Managers.Inventory.ExportEquipmentTabSaveData();
+            CurrentData.ConsumptionTabSlots = Managers.Inventory.ExportConsumptionTabSaveData();
+            CurrentData.EtcTabSlots = Managers.Inventory.ExportEtcTabSaveData();
             CurrentData.EquipmentSlots = Managers.Inventory.ExportEquipmentSlotSaveData();
+            CurrentData.QuickSlots = Managers.Inventory.ExportQuickSlotSaveData();
         }
     }
 
