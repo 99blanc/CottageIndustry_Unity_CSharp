@@ -11,6 +11,7 @@ namespace LateForDinner.Data
         public string DescriptionKey { get; set; }
         public string FlavorKey { get; set; }
         public string AddressableKey { get; set; }
+        public bool Destroy { get; set; }
         public int MaxStack { get; set; }
     }
 }

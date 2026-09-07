@@ -4,3 +4,7 @@
 # Foreign ID: Item.csv,
 ID,ArmorCategory
 # Index: ArmorItem,
+1,Head
+2,Chest
+3,Pants
+4,Boots

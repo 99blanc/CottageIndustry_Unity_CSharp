@@ -5,6 +5,11 @@
 # Foreign Key: Attribute.csv,,,,
 ItemID,ApplyType,AttributeKey,Value,Duration
 # Index: ItemTemplate,,,,
-1,Passive,Damage,1,0
-1,Passive,AttackSpeed,1,0
-1,Passive,AttackInterval,0.2,0
+1,Passive,Health,1,0
+2,Passive,TemporaryHealth,1,0
+3,Passive,MoveSpeed,1,0
+4,Passive,JumpForce,1,0
+5,Passive,Damage,1,0
+5,Passive,AttackSpeed,1,0
+5,Passive,AttackInterval,0.2,0
+6,Active,Health,1,0

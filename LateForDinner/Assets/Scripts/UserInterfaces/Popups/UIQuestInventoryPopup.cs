@@ -2,64 +2,63 @@ using LateForDinner.Data;
 using R3;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEngine.EventSystems;
 using ZLinq;
 
 public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
 {
-    private enum RectTransforms
-    {
-        EquipmentContent
+    private enum RectTransforms 
+    { 
+        EquipmentContent 
     }
 
     private enum Images
     {
-        AttributeButtonImage,
-        TotalButtonImage,
+        AttributeButtonImage, 
+        TotalButtonImage, 
         EquipmentButtonImage,
-        ConsumptionButtonImage,
-        EtcButtonImage,
+        ConsumptionButtonImage, 
+        EtcButtonImage, 
         SortButtonImage,
         ScrollUpArrowImage,
-        ScrollDownArrowImage,
+        ScrollDownArrowImage, 
         MealTimeImage
     }
 
     private enum Texts
     {
-        AttributeTabText,
-        HealthTabText,
-        JumpForceTabText,
+        AttributeTabText, 
+        HealthTabText, 
+        JumpForceTabText, 
         JumpCountTabText,
-        DashDistanceTabText,
-        MoveSpeedTabText,
-        DamageTabText,
+        DashDistanceTabText, 
+        MoveSpeedTabText, 
+        DamageTabText, 
         AttackSpeedTabText,
-        GoldText,
+        GoldText, 
         DayText
     }
 
     private enum Buttons
     {
-        AttributeButton,
-        TotalButton,
-        EquipmentButton,
+        AttributeButton, 
+        TotalButton, 
+        EquipmentButton, 
         ConsumptionButton,
-        EtcButton,
-        SortButton,
-        ScrollUpButton,
-        ScrollDownButton,
+        EtcButton, 
+        SortButton, 
+        ScrollUpButton, 
+        ScrollDownButton
     }
 
-    private enum ScrollRects
-    {
-        InventoryScrollRect
+    private enum ScrollRects 
+    { 
+        InventoryScrollRect 
     }
 
-    private enum Panels
+    private enum Panels 
     {
-        AttributePanel
+        AttributePanel 
     }
 
     private readonly ReactiveProperty<ButtonState> _attributeButtonState = new ReactiveProperty<ButtonState>(ButtonState.Normal);
@@ -74,6 +73,7 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
     private readonly List<UIInventorySlot> _equipmentCreatedSlots = new List<UIInventorySlot>();
     private ItemType? _currentTabType = null;
     private bool _isAttributePanelOpen = true;
+    public ItemType? CurrentTabType => _currentTabType;
 
     public override void OnInit()
     {
@@ -88,7 +88,9 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         BindButtonActions();
         InitInventorySlots();
         InitEquipmentSlots();
-        Refresh();
+        Managers.Inventory.OnInventoryChanged
+        .Subscribe(_ => Refresh())
+        .RegisterToPool(this);
     }
 
     private void BindButtonStates()
@@ -152,7 +154,6 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         base.Refresh();
         RefreshInventory(_currentTabType);
         RefreshEquipmentSlots();
-        RefreshPlayerInfo();
 
         if (_isAttributePanelOpen)
             RefreshPlayerInfo();
@@ -170,9 +171,7 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
                 _createdSlots[index].SetActive(true);
 
                 if (index < slotDataList.Count)
-                    _createdSlots[index].Setup(slotDataList[index].SlotIndex, slotDataList[index], false);
-                else
-                    _createdSlots[index].Clear();
+                    _createdSlots[index].Setup(index, slotDataList[index], false);
             }
             else
                 _createdSlots[index].SetActive(false);
@@ -196,8 +195,8 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
 
         if (saveData != null)
         {
-            GetText(Texts.GoldText).text = Managers.Save.CurrentData.Gold.ToString("N0");
-            GetText(Texts.DayText).text = Managers.Localization.Get(LocalizationKey.Slot_Day_Format, Managers.Save.CurrentData.Day);
+            GetText(Texts.GoldText).text = saveData.Gold.ToString("N0");
+            GetText(Texts.DayText).text = Managers.Localization.Get(LocalizationKey.Slot_Day_Format, saveData.Day);
             string spriteName = saveData.Meal.ToSpriteAsMealTime();
             GetImage(Images.MealTimeImage).sprite = Managers.Resource.GetSprite(Define.Atlas.Common, spriteName);
         }
@@ -206,20 +205,13 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
 
         if (player != null && player.Attributes != null)
         {
-            int currentHealth = player.Attributes.Get<int>(AttributeType.Health).Value;
-            GetText(Texts.HealthTabText).text = currentHealth.ToString();
-            float moveSpeed = player.Attributes.Get<float>(AttributeType.MoveSpeed).Value;
-            GetText(Texts.MoveSpeedTabText).text = moveSpeed.ToString("F1");
-            float damage = player.Attributes.Get<float>(AttributeType.Damage).Value;
-            GetText(Texts.DamageTabText).text = damage.ToString("N0");
-            float attackSpeed = player.Attributes.Get<float>(AttributeType.AttackSpeed).Value;
-            GetText(Texts.AttackSpeedTabText).text = attackSpeed.ToString("F2");
-            float jumpForce = player.Attributes.Get<float>(AttributeType.JumpForce).Value;
-            GetText(Texts.JumpForceTabText).text = jumpForce.ToString("F1");
-            int jumpCount = player.Attributes.Get<int>(AttributeType.JumpCount).Value;
-            GetText(Texts.JumpCountTabText).text = jumpCount.ToString();
-            float dashDistance = player.Attributes.Get<float>(AttributeType.DashDistance).Value;
-            GetText(Texts.DashDistanceTabText).text = dashDistance.ToString("F1");
+            GetText(Texts.HealthTabText).text = player.Attributes.Get<int>(AttributeType.Health).Value.ToString();
+            GetText(Texts.MoveSpeedTabText).text = player.Attributes.Get<float>(AttributeType.MoveSpeed).Value.ToString("F1");
+            GetText(Texts.DamageTabText).text = player.Attributes.Get<float>(AttributeType.Damage).Value.ToString("N0");
+            GetText(Texts.AttackSpeedTabText).text = player.Attributes.Get<float>(AttributeType.AttackSpeed).Value.ToString("F2");
+            GetText(Texts.JumpForceTabText).text = player.Attributes.Get<float>(AttributeType.JumpForce).Value.ToString("F1");
+            GetText(Texts.JumpCountTabText).text = player.Attributes.Get<int>(AttributeType.JumpCount).Value.ToString();
+            GetText(Texts.DashDistanceTabText).text = player.Attributes.Get<float>(AttributeType.DashDistance).Value.ToString("F1");
         }
     }
 
@@ -228,43 +220,43 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         _isAttributePanelOpen = !GetPanel(Panels.AttributePanel).IsActive();
         GetPanel(Panels.AttributePanel).SetActive(_isAttributePanelOpen);
 
-        if (_isAttributePanelOpen)
+        if (_isAttributePanelOpen) 
             RefreshPlayerInfo();
     }
 
-    private void OnClickTotalTab(PointerEventData data)
-    {
-        _currentTabType = null;
-        RefreshInventory(_currentTabType);
+    private void OnClickTotalTab(PointerEventData data) 
+    { 
+        _currentTabType = null; 
+        RefreshInventory(_currentTabType); 
     }
 
-    private void OnClickEquipmentTab(PointerEventData data)
-    {
-        _currentTabType = ItemType.Equipment;
-        RefreshInventory(_currentTabType);
+    private void OnClickEquipmentTab(PointerEventData data) 
+    { 
+        _currentTabType = ItemType.Equipment; 
+        RefreshInventory(_currentTabType); 
     }
 
-    private void OnClickConsumptionTab(PointerEventData data)
+    private void OnClickConsumptionTab(PointerEventData data) 
     {
-        _currentTabType = ItemType.Consumption;
-        RefreshInventory(_currentTabType);
+        _currentTabType = ItemType.Consumption; 
+        RefreshInventory(_currentTabType); 
     }
 
-    private void OnClickEtcTab(PointerEventData data)
-    {
-        _currentTabType = ItemType.Etc;
-        RefreshInventory(_currentTabType);
+    private void OnClickEtcTab(PointerEventData data) 
+    { 
+        _currentTabType = ItemType.Etc; 
+        RefreshInventory(_currentTabType); 
     }
 
-    private void OnClickSortTab(PointerEventData data)
-    {
-        Managers.Inventory.SortInventory(_currentTabType);
-        Refresh();
+    private void OnClickSortTab(PointerEventData data) 
+    { 
+        Managers.Inventory.SortInventory(_currentTabType); 
+        Refresh(); 
     }
 
-    private void OnClickScrollUp(PointerEventData data)
+    private void OnClickScrollUp(PointerEventData data) 
         => GetScrollRect(ScrollRects.InventoryScrollRect).verticalNormalizedPosition = 1f;
 
-    private void OnClickScrollDown(PointerEventData data)
+    private void OnClickScrollDown(PointerEventData data) 
         => GetScrollRect(ScrollRects.InventoryScrollRect).verticalNormalizedPosition = 0f;
 }

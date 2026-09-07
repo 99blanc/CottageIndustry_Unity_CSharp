@@ -1,5 +1,4 @@
 using MemoryPack;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,6 +18,7 @@ namespace LateForDinner.Data
     [MemoryPackable]
     public partial class InventorySlot
     {
+        public int GlobalIndex;
         public int SlotIndex;
         public int ItemID;
         public int Quantity;
@@ -121,7 +121,7 @@ namespace LateForDinner.Data
             PlayerPosition = Vector2.zero,
             PlayerRotation = 0f,
             PlayerFlipX = false,
-            InventorySlots = Enumerable.Range(0, Define.Amount.MaxInventorySlot).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
+            InventorySlots = Enumerable.Range(0, Define.Amount.MaxInventorySlot).Select(i => new InventorySlot { GlobalIndex = i, SlotIndex = i % Define.Amount.InventoryTabSize, ItemID = 0, Quantity = 0 }).ToList(),
             EquipmentSlots = Enumerable.Range(0, Define.Amount.MaxEquipmentSlot).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
             UnlockedWeapons = new List<WeaponSave>(),
             QuickSlots = Enumerable.Range(0, Define.Amount.MaxQuickSlot).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),

@@ -1,3 +1,4 @@
 public enum EtcType
 {
+    Material,
 }

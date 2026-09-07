@@ -5,6 +5,5 @@ public enum ViewEvent
     Release,
     Press,
     LeftClick,
-    RightClick,
-    DoubleClick
+    RightClick
 }

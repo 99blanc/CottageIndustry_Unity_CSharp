@@ -1,8 +1,6 @@
-using Cysharp.Threading.Tasks;
 using R3;
 using R3.Triggers;
 using System;
-using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
@@ -22,7 +20,6 @@ public static class UIExtensions
             ViewEvent.Release => view.OnPointerUpAsObservable(),
             ViewEvent.LeftClick => view.OnPointerClickAsObservable().Where(data => data.button == PointerEventData.InputButton.Left),
             ViewEvent.RightClick => view.OnPointerClickAsObservable().Where(data => data.button == PointerEventData.InputButton.Right),
-            ViewEvent.DoubleClick => view.OnPointerClickAsObservable().Chunk(TimeSpan.FromSeconds(0.25f), 2).Where(list => list.Length == 2).Select(list => list[1]),
             _ => Return(type)
         };
         observable.Where(_ => Disable(prop)).Subscribe(action).RegisterToPool(component);
@@ -38,7 +35,6 @@ public static class UIExtensions
             ViewEvent.Release => view.OnPointerUpAsObservable(),
             ViewEvent.LeftClick => view.OnPointerClickAsObservable().Where(data => data.button == PointerEventData.InputButton.Left),
             ViewEvent.RightClick => view.OnPointerClickAsObservable().Where(data => data.button == PointerEventData.InputButton.Right),
-            ViewEvent.DoubleClick => view.OnPointerClickAsObservable().Chunk(TimeSpan.FromSeconds(Define.Scaler.Threshold), 2).Where(list => list.Length == 2).Select(list => list[1]),
             _ => Return(type)
         };
         observable.Subscribe(action).RegisterToPool(component);
@@ -173,53 +169,4 @@ public static class UIExtensions
             Disposable.Create(() => customInput.OnSubmitAction = null).RegisterToPool(component);
         }
     }
-
-    public static void SetVisual(this Image boxImage, Image toggleImage = null, Scrollbar scrollbar = null, bool isEnabled = true)
-    {
-        Color targetColor = isEnabled ? Color.white : new Color(0.5f, 0.5f, 0.5f, 1f);
-
-        if (boxImage != null)
-            boxImage.color = targetColor;
-
-        if (toggleImage != null)
-            toggleImage.color = targetColor;
-
-        if (scrollbar != null)
-        {
-            scrollbar.interactable = isEnabled;
-
-            if (scrollbar.TryGetComponent<Image>(out var barImage))
-                barImage.color = targetColor;
-
-            if (scrollbar.targetGraphic is Graphic bgGraphic)
-                bgGraphic.color = targetColor;
-
-            if (scrollbar.handleRect != null && scrollbar.handleRect.TryGetComponent<Image>(out var handleImage))
-                handleImage.color = targetColor;
-        }
-    }
-
-    public static void SetActive(this Graphic component, bool isActive)
-    {
-        if (component != null && component.gameObject != null)
-            component.gameObject.SetActive(isActive);
-    }
-
-    public static void SetActive(this TMP_Text component, bool isActive)
-    {
-        if (component != null && component.gameObject != null)
-            component.gameObject.SetActive(isActive);
-    }
-
-    public static void SetActive(this Component component, bool isActive)
-    {
-        if (component != null && component.gameObject != null)
-            component.gameObject.SetActive(isActive);
-    }
-
-    public static bool IsActive(this Component component)
-        => component != null && component.gameObject != null && component.gameObject.activeInHierarchy;
-
-    public static bool IsActive(this GameObject gameObject)
-        => gameObject != null && gameObject.activeInHierarchy;
 }

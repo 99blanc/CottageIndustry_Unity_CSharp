@@ -112,9 +112,27 @@ public enum LocalizationKey
     Console_Save_InvalidSlot                           , // 유효하지 않은 세이브 슬롯 번호입니다: '{0}'.
     Interaction_Ladder                                 , // 사다리 진입
     Interaction_Tray                                   , // 식판 획득/내려놓기/던지기/식탁 배치
-    Item_Name_1                                        , // 대검
-    Item_Description_1                                 , // 공격력: 1\n공격속도: 1
-    Item_Flavor_1                                      , // 테스트용 대검이다.
+    Item_Name_1                                        , // 테스트용 모자
+    Item_Name_2                                        , // 테스트용 상의
+    Item_Name_3                                        , // 테스트용 하의
+    Item_Name_4                                        , // 테스트용 신발
+    Item_Name_5                                        , // 테스트용 대검
+    Item_Name_6                                        , // 테스트용 포션
+    Item_Name_7                                        , // 테스트용 재화
+    Item_Description_1                                 , // 체력: +1
+    Item_Description_2                                 , // 임시체력: +1
+    Item_Description_3                                 , // 이동속도: +1
+    Item_Description_4                                 , // 점프력: +1\n점프횟수: +1
+    Item_Description_5                                 , // 공격력: +1\n공격속도: +1\n공격간격: +0.2
+    Item_Description_6                                 , // 체력: +1\재사용 대기시간: 2초
+    Item_Description_7                                 , // 레포디 테스트용 포션
+    Item_Flavor_1                                      , // 테스트하기 귀찮은 사람이 만든 모자다.
+    Item_Flavor_2                                      , // 테스트하기 귀찮은 사람이 만든 상의다.
+    Item_Flavor_3                                      , // 테스트하기 귀찮은 사람이 만든 하의다.
+    Item_Flavor_4                                      , // 테스트하기 귀찮은 사람이 만든 신발이다.
+    Item_Flavor_5                                      , // 테스트하기 귀찮은 사람이 만든 무기다.
+    Item_Flavor_6                                      , // 테스트하기 귀찮은 사람이 만든 포션이다.
+    Item_Flavor_7                                      , // 테스트하기 귀찮은 사람이 만든 재화다.
     Log_Attribute_Registry_Unsupported                 , // [AttributeRegistry] 지원하지 않는 데이터 타입입니다: {0}('{1}')
     Log_Camera_LoadSuccess                             , // [CameraManager] 카메라 로드에 성공했습니다.
     Log_Camera_LoadFailed                              , // [CameraManager] 카메라 로드에 실패했습니다.

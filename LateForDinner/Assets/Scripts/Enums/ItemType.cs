@@ -1,6 +1,6 @@
 public enum ItemType
 {
-    Equipment,
+    Equipment  ,
     Consumption,
-    Etc
+    Etc        ,
 }

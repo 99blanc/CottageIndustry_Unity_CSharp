@@ -2,29 +2,39 @@ using LateForDinner.Data;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class UIInventorySlot : UISlot
+public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
 {
-    private enum Images
-    {
-        SlotBackgroundImage,
-        SlotCoverImage,
-        SlotItemImage,
-        SlotCooldownImage
+    private enum Images 
+    { 
+        SlotBackgroundImage, 
+        SlotCoverImage, 
+        SlotItemImage, 
+        SlotCooldownImage 
     }
 
-    private enum Texts
-    {
-        SlotQuantityText
+    private enum Texts 
+    { 
+        SlotQuantityText 
     }
 
-    private enum Buttons
-    {
-        SlotButton
+    private enum Buttons 
+    { 
+        SlotButton 
     }
 
-    private InventorySlot _data;
-    private int _slotIndex;
+    public Sprite DragSprite
+    {
+        get
+        {
+            var itemImage = GetImage(Images.SlotItemImage);
+            return itemImage.gameObject.activeSelf ? itemImage.sprite : null;
+        }
+    }
+
     private bool _isEquipmentSlot;
+    private InventorySlot _data;
+    public InventorySlot Data => _data;
+    public SlotArea CurrentSlotArea => _isEquipmentSlot ? SlotArea.Equipment : SlotArea.Inventory;
 
     public override void OnInit()
     {
@@ -32,14 +42,15 @@ public class UIInventorySlot : UISlot
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
-        GetButton(Buttons.SlotButton).BindView(OnClickSlot, ViewEvent.LeftClick, this);
+        GetButton(Buttons.SlotButton).BindView(OnClickSlot, ViewEvent.RightClick, this);
     }
 
-    public void Setup(int slotIndex, InventorySlot slotData, bool isEquipmentSlot = false)
+    public void Setup(int displayIndex, InventorySlot slotData, bool isEquipmentSlot = false)
     {
-        _slotIndex = slotIndex;
-        _data = slotData;
         _isEquipmentSlot = isEquipmentSlot;
+        _data = slotData;
+        var draggable = (IDraggableSlot<UIInventorySlot>)this;
+        draggable.SlotIndex = displayIndex;
         Refresh();
     }
 
@@ -50,9 +61,8 @@ public class UIInventorySlot : UISlot
         if (_isEquipmentSlot && (_data == null || _data.ItemID <= 0))
         {
             GetImage(Images.SlotCoverImage).SetActive(true);
-            EquipmentSlotType slotType = (EquipmentSlotType)_slotIndex;
+            EquipmentSlotType slotType = (EquipmentSlotType)((IDraggableSlot<UIInventorySlot>)this).SlotIndex;
             string coverSpriteName = slotType.ToSpriteAsEquipmentCover();
-
             if (!string.IsNullOrEmpty(coverSpriteName))
                 SetEquipmentImageSprite(coverSpriteName);
         }
@@ -90,22 +100,26 @@ public class UIInventorySlot : UISlot
     public void Clear()
     {
         _data = null;
-        _slotIndex = -1;
+        ((IDraggableSlot<UIInventorySlot>)this).SlotIndex = -1;
         GetImage(Images.SlotItemImage).SetActive(false);
         GetText(Texts.SlotQuantityText).text = string.Empty;
         GetImage(Images.SlotCooldownImage).SetActive(false);
     }
 
+    public void OnMoveItem(UIInventorySlot targetSlot)
+    {
+        if (targetSlot == null || targetSlot == this)
+            return;
+
+        Managers.Inventory.HandleItemMove(CurrentSlotArea, this.Data, targetSlot.CurrentSlotArea, targetSlot.Data);
+    }
+
     private void OnClickSlot(PointerEventData data)
     {
-        Debug.Log($"Clicked Slot Index: {_slotIndex}");
+        var draggable = (IDraggableSlot<UIInventorySlot>)this;
+        Debug.Log($"Clicked Slot - Area: {CurrentSlotArea}, SlotIndex: {draggable.SlotIndex}, ItemID: {_data?.ItemID}");
     }
 
     private void SetEquipmentImageSprite(string spriteName)
-    {
-        var image = GetImage(Images.SlotCoverImage);
-
-        if (image != null)
-            image.sprite = Managers.Resource.GetSprite(Define.Atlas.Common, spriteName);
-    }
+        => GetImage(Images.SlotCoverImage).sprite = Managers.Resource.GetSprite(Define.Atlas.Common, spriteName);
 }
