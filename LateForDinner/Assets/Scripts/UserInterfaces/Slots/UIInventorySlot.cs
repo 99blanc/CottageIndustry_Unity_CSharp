@@ -46,6 +46,12 @@ public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
         GetButton(Buttons.SlotButton).BindView(OnClickSlot, ViewEvent.RightClick, this);
     }
 
+    public override void OnGet()
+    {
+        base.OnGet();
+        Refresh();
+    }
+
     public void Setup(int displayIndex, InventorySlot slotData, bool isEquipmentSlot = false)
     {
         _isEquipmentSlot = isEquipmentSlot;
