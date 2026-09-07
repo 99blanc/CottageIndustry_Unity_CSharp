@@ -82,17 +82,18 @@ public class UIHeadUpDisplay : UIDisplay
     {
         var player = Managers.Game.Player;
 
-        if (player == null) 
+        if (player == null)
             return;
 
+        var healthAttribute = player.Attributes.Get<int>(AttributeType.Health);
         var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.Health);
         int initialSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
         UpdateHealthSlots(initialSlotCount, player);
-        maxHealthAttribute.AsObservable()
+        Observable.CombineLatest(healthAttribute.AsObservable(), maxHealthAttribute.AsObservable(), (health, maxHealth) => (health, maxHealth))
         .Skip(1)
-        .Subscribe(this, (maxHealth, hud) =>
+        .Subscribe(this, (tuple, hud) =>
         {
-            int totalSlotCount = Mathf.CeilToInt(maxHealth / 2f);
+            int totalSlotCount = Mathf.CeilToInt(tuple.maxHealth / 2f);
             hud.UpdateHealthSlots(totalSlotCount, player);
         }).RegisterToPool(this);
     }
@@ -101,19 +102,59 @@ public class UIHeadUpDisplay : UIDisplay
     {
         var player = Managers.Game.Player;
 
-        if (player == null) 
+        if (player == null)
             return;
 
-        var maxTempHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
-        int initialSlotCount = Mathf.CeilToInt(maxTempHealthAttribute.CurrentValue / 2f);
+        var healthAttribute = player.Attributes.Get<int>(AttributeType.TemporaryHealth);
+        var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
+        int initialSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
         UpdateTemporaryHealthSlots(initialSlotCount, player);
-        maxTempHealthAttribute.AsObservable()
+        Observable.CombineLatest(healthAttribute.AsObservable(), maxHealthAttribute.AsObservable(), (health, maxHealth) => (health, maxHealth))
         .Skip(1)
-        .Subscribe(this, (maxTempHealth, hud) =>
+        .Subscribe(this, (tuple, hud) =>
         {
-            int totalSlotCount = Mathf.CeilToInt(maxTempHealth / 2f);
+            int totalSlotCount = Mathf.CeilToInt(tuple.maxHealth / 2f);
             hud.UpdateTemporaryHealthSlots(totalSlotCount, player);
         }).RegisterToPool(this);
+    }
+
+    public override void Refresh()
+    {
+        base.Refresh();
+        var player = Managers.Game.Player;
+
+        if (player == null || player.Attributes == null)
+            return;
+
+        var dashAttribute = player.Attributes.GetBase<int>(AttributeType.DashCount);
+
+        if (dashAttribute != null)
+            UpdateDashSlots(dashAttribute.CurrentValue, player);
+
+        var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.Health);
+
+        if (maxHealthAttribute != null)
+        {
+            int initialSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
+            UpdateHealthSlots(initialSlotCount, player);
+        }
+
+        var maxTempHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
+
+        if (maxTempHealthAttribute != null)
+        {
+            int initialSlotCount = Mathf.CeilToInt(maxTempHealthAttribute.CurrentValue / 2f);
+            UpdateTemporaryHealthSlots(initialSlotCount, player);
+        }
+
+        foreach (var slot in _dashSlots)
+            slot?.Refresh();
+
+        foreach (var slot in _healthSlots)
+            slot?.Refresh();
+
+        foreach (var slot in _temporaryHealthSlots)
+            slot?.Refresh();
     }
 
     private void UpdateDashSlots(int maxDashCount, PlayableCharacter player)

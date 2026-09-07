@@ -19,6 +19,7 @@ public class UIDashCountSlot : UISlot, IAnimatableUI
 
     private int _slotIndex;
     private UI_DashState _currentState = UI_DashState.Full;
+    private PlayableCharacter _cachedPlayer;
 
     public override void OnInit()
     {
@@ -28,6 +29,7 @@ public class UIDashCountSlot : UISlot, IAnimatableUI
 
     public void InitDashSlot(PlayableCharacter player, int index)
     {
+        _cachedPlayer = player;
         _slotIndex = index;
         int initialCount = player.Attributes.Get<int>(AttributeType.DashCount).CurrentValue;
         _currentState = GetStateFromDash(initialCount, _slotIndex);
@@ -39,6 +41,25 @@ public class UIDashCountSlot : UISlot, IAnimatableUI
         {
             slot.UpdateDashState(currentCount);
         }).RegisterToPool(this);
+    }
+
+    public override void Refresh()
+    {
+        base.Refresh();
+
+        if (_cachedPlayer == null)
+            _cachedPlayer = Managers.Game.Player;
+
+        if (_cachedPlayer == null || _cachedPlayer.Attributes == null)
+            return;
+
+        var dashAttr = _cachedPlayer.Attributes.Get<int>(AttributeType.DashCount);
+
+        if (dashAttr != null)
+        {
+            _currentState = GetStateFromDash(dashAttr.CurrentValue, _slotIndex);
+            ApplyStaticState(_currentState);
+        }
     }
 
     private void UpdateDashState(int currentCount)

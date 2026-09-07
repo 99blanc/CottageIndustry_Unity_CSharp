@@ -134,6 +134,7 @@ namespace LateForDinner.Data
     {
         public string Key;
         public string DataType;
-        public string Value;
+        public string BaseValue;
+        public string CurrentValue;
     }
 }

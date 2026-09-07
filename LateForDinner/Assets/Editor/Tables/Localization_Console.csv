@@ -14,8 +14,7 @@ Console_Desc_Debug,디버그 모드를 켜거나 끕니다.
 Console_Desc_Clear,콘솔창의 로그 기록을 지웁니다.
 Console_Desc_FPS,FPS 표시 UI를 켜거나 끕니다.
 Console_Desc_Time,게임 타임 스케일을 설정하거나 확인합니다.
-Console_Desc_Set,임의의 현재 변수를 설정합니다.
-Console_Desc_SetBase,임의의 기준 변수를 설정합니다.
+Console_Desc_Set,지정한 능력치의 현재값과 최대값을 동시에 설정합니다.
 Console_Desc_Get,지정한 변수의 값을 가져옵니다.
 Console_Desc_LogSearch,로그 메시지에서 특정 키워드를 검색합니다.
 Console_Desc_LogFilter,특정 타입의 로그 가시성을 설정합니다.
@@ -32,12 +31,11 @@ Console_FPS_Enabled,FPS UI를 켰습니다.
 Console_Time_Set,타임 스케일이 {0}(으)로 설정되었습니다.
 Console_Time_Current,현재 타임 스케일: {0}
 Console_Variable_Header,--- 사용 가능한 능력치 목록 ---
-Console_Set_Usage,사용법: set [이름] [값]
-Console_Set_Success,변수 설정 완료 [{0} = {1}]
-Console_SetBase_Usage,사용법: setbase [이름] [값]
-Console_SetBase_Success,변수 설정 완료 [{0} = {1}]
+Console_Set_Usage,사용법: set [이름] [값] [base/-b (선택)] (예: set hp 200 base)
+Console_Set_Success,능력치 설정 완료 [{0}]: 현재치({1}) / 최대치({1})
+Console_SetBase_Success,[0] 능력치 최대치(Base) 및 현재값 설정 완료: {1}
 Console_Get_Usage,사용법: get [이름]
-Console_Get_Success,[{0}] = {1}
+Console_Get_Success,[{0}] 현재치: {1} / 최대치: {2}
 Console_Get_NotFound,{0}' 변수를 찾을 수 없습니다.
 Console_LogSearch_Reset,로그 검색 필터를 초기화했습니다.
 Console_LogSearch_Filtered,로그 검색 키워드: '{0}'

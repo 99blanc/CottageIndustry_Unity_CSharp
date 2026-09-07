@@ -49,7 +49,6 @@ public class UIConsoleSystem : UISystem
         _logSubscription = Managers.Log.OnLogAdded.Subscribe(_ => Refresh());
         Managers.Control.DisableActionMap(Literal.Maps.User);
         ResetInputField();
-        Refresh();
     }
 
     public override void OnRelease()

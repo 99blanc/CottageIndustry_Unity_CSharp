@@ -26,6 +26,7 @@ public class UIRemainHealthSlot : UISlot, IAnimatableUI
     private int _slotIndex;
     private UI_HealthSlotType _slotType;
     private UI_HealthState _currentState = UI_HealthState.Full;
+    private PlayableCharacter _cachedPlayer;
 
     public override void OnInit()
     {
@@ -35,33 +36,41 @@ public class UIRemainHealthSlot : UISlot, IAnimatableUI
 
     public void InitHealthSlot(PlayableCharacter player, int index, UI_HealthSlotType slotType)
     {
+        _cachedPlayer = player;
         _slotIndex = index;
         _slotType = slotType;
-        var image = GetImage(Images.RemainHealthImage);
         AttributeType currentAttrType = (_slotType == UI_HealthSlotType.Temporary) ? AttributeType.TemporaryHealth : AttributeType.Health;
         var healthAttr = player.Attributes.Get<int>(currentAttrType);
-        var maxHealthAttr = player.Attributes.GetBase<int>(currentAttrType);
         int slotThreshold = _slotIndex * 2;
-        UI_HealthState targetState = GetStateFromHealth(healthAttr.CurrentValue, slotThreshold);
-
-        if (targetState != UI_HealthState.Empty)
-        {
-            _currentState = UI_HealthState.Empty;
-            ApplyStaticState(_currentState, _currentState);
-            PlayHealthTransitionAsync(UI_HealthState.Empty, targetState).Forget();
-        }
-        else
-        {
-            _currentState = UI_HealthState.Empty;
-            ApplyStaticState(_currentState, _currentState);
-        }
-
-        Observable.CombineLatest(healthAttr.AsObservable(), maxHealthAttr.AsObservable(), (health, maxHealth) => (health, maxHealth))
+        _currentState = GetStateFromHealth(healthAttr.CurrentValue, slotThreshold);
+        ApplyStaticState(_currentState);
+        Observable.CombineLatest(healthAttr.AsObservable(), player.Attributes.GetBase<int>(currentAttrType).AsObservable(), (health, maxHealth) => (health, maxHealth))
         .Skip(1)
         .Subscribe(this, (tuple, slot) =>
         {
             slot.UpdateHealthState(tuple.health, tuple.maxHealth);
         }).RegisterToPool(this);
+    }
+
+    public override void Refresh()
+    {
+        base.Refresh();
+
+        if (_cachedPlayer == null)
+            _cachedPlayer = Managers.Game.Player;
+
+        if (_cachedPlayer == null || _cachedPlayer.Attributes == null)
+            return;
+
+        AttributeType currentAttrType = (_slotType == UI_HealthSlotType.Temporary) ? AttributeType.TemporaryHealth : AttributeType.Health;
+        var healthAttr = _cachedPlayer.Attributes.Get<int>(currentAttrType);
+
+        if (healthAttr != null)
+        {
+            int slotThreshold = _slotIndex * 2;
+            _currentState = GetStateFromHealth(healthAttr.CurrentValue, slotThreshold);
+            ApplyStaticState(_currentState, _currentState);
+        }
     }
 
     private void UpdateHealthState(int currentHealth, int maxHealth)
@@ -206,6 +215,42 @@ public class UIRemainHealthSlot : UISlot, IAnimatableUI
                     image.sprite = Managers.Resource.GetSprite(Define.Atlas.Common, Define.Sprite.Empty);
                     break;
                 case (UI_HealthState.Empty, UI_HealthState.Full):
+                    image.sprite = Managers.Resource.GetSprite(Define.Atlas.HeadUp, Define.Sprite.TemporaryHealthFull);
+                    break;
+            }
+        }
+    }
+
+    private void ApplyStaticState(UI_HealthState state)
+    {
+        var image = GetImage(Images.RemainHealthImage);
+
+        if (_slotType == UI_HealthSlotType.Normal)
+        {
+            switch (state)
+            {
+                case UI_HealthState.Empty:
+                    image.sprite = Managers.Resource.GetSprite(Define.Atlas.HeadUp, Define.Sprite.HealthEmpty);
+                    break;
+                case UI_HealthState.Half:
+                    image.sprite = Managers.Resource.GetSprite(Define.Atlas.HeadUp, Define.Sprite.HealthHalf);
+                    break;
+                case UI_HealthState.Full:
+                    image.sprite = Managers.Resource.GetSprite(Define.Atlas.HeadUp, Define.Sprite.HealthFull);
+                    break;
+            }
+        }
+        else
+        {
+            switch (state)
+            {
+                case UI_HealthState.Empty:
+                    image.sprite = Managers.Resource.GetSprite(Define.Atlas.Common, Define.Sprite.Empty);
+                    break;
+                case UI_HealthState.Half:
+                    image.sprite = Managers.Resource.GetSprite(Define.Atlas.HeadUp, Define.Sprite.TemporaryHealthHalf);
+                    break;
+                case UI_HealthState.Full:
                     image.sprite = Managers.Resource.GetSprite(Define.Atlas.HeadUp, Define.Sprite.TemporaryHealthFull);
                     break;
             }

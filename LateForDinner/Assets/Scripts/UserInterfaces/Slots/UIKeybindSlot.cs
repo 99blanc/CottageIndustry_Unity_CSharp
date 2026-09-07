@@ -95,7 +95,6 @@ public class UIKeybindSlot : UISlot
         _onDuplicated = onDuplicated;
         _cachedActionLocalizationKey = ZString.Concat(Literal.Localizations.Action, action);
         _cachedResetLocalizationKey = LocalizationKey.Reset;
-
         Refresh();
     }
 
@@ -107,7 +106,6 @@ public class UIKeybindSlot : UISlot
         _setLock = lockAction;
         _cachedActionLocalizationKey = Managers.Localization.Get(LocalizationKey.Action_DashCommand);
         _cachedResetLocalizationKey = LocalizationKey.Switch;
-
         Refresh();
     }
 

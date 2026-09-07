@@ -59,11 +59,11 @@ public class AttributeRegistry
             string key = pair.Key.ToString();
             AttributeSaveData saveData = pair.Value switch
             {
-                AttributeView<short> sView => new AttributeSaveData { Key = key, DataType = Literal.Types.Short, Value = sView.CurrentValue.Value.ToString() },
-                AttributeView<int> iView => new AttributeSaveData { Key = key, DataType = Literal.Types.Int, Value = iView.CurrentValue.Value.ToString() },
-                AttributeView<long> lView => new AttributeSaveData { Key = key, DataType = Literal.Types.Long, Value = lView.CurrentValue.Value.ToString() },
-                AttributeView<float> fView => new AttributeSaveData { Key = key, DataType = Literal.Types.Float, Value = fView.CurrentValue.Value.ToString() },
-                AttributeView<double> dView => new AttributeSaveData { Key = key, DataType = Literal.Types.Double, Value = dView.CurrentValue.Value.ToString() },
+                AttributeView<short> sView => new AttributeSaveData { Key = key, DataType = Literal.Types.Short, BaseValue = sView.BaseValue.Value.ToString(), CurrentValue = sView.CurrentValue.Value.ToString() },
+                AttributeView<int> iView => new AttributeSaveData { Key = key, DataType = Literal.Types.Int, BaseValue = iView.BaseValue.Value.ToString(), CurrentValue = iView.CurrentValue.Value.ToString() },
+                AttributeView<long> lView => new AttributeSaveData { Key = key, DataType = Literal.Types.Long, BaseValue = lView.BaseValue.Value.ToString(), CurrentValue = lView.CurrentValue.Value.ToString() },
+                AttributeView<float> fView => new AttributeSaveData { Key = key, DataType = Literal.Types.Float, BaseValue = fView.BaseValue.Value.ToString(), CurrentValue = fView.CurrentValue.Value.ToString() },
+                AttributeView<double> dView => new AttributeSaveData { Key = key, DataType = Literal.Types.Double, BaseValue = dView.BaseValue.Value.ToString(), CurrentValue = dView.CurrentValue.Value.ToString() },
                 _ => null
             };
 
@@ -87,37 +87,37 @@ public class AttributeRegistry
             switch (data.DataType?.ToLowerInvariant())
             {
                 case Literal.Types.Short:
-                    if (short.TryParse(data.Value, out var sVal))
+                    if (short.TryParse(data.BaseValue, out var sBase) && short.TryParse(data.CurrentValue, out var sVal))
                     {
-                        SetBase(attributeType, sVal);
+                        SetBase(attributeType, sBase);
                         Set(attributeType, sVal);
                     }
                     break;
                 case Literal.Types.Int:
-                    if (int.TryParse(data.Value, out var iVal))
+                    if (int.TryParse(data.BaseValue, out var iBase) && int.TryParse(data.CurrentValue, out var iVal))
                     {
-                        SetBase(attributeType, iVal);
+                        SetBase(attributeType, iBase);
                         Set(attributeType, iVal);
                     }
                     break;
                 case Literal.Types.Long:
-                    if (long.TryParse(data.Value, out var lVal))
+                    if (long.TryParse(data.BaseValue, out var lBase) && long.TryParse(data.CurrentValue, out var lVal))
                     {
-                        SetBase(attributeType, lVal);
+                        SetBase(attributeType, lBase);
                         Set(attributeType, lVal);
                     }
                     break;
                 case Literal.Types.Float:
-                    if (float.TryParse(data.Value, out var fVal))
+                    if (float.TryParse(data.BaseValue, out var fBase) && float.TryParse(data.CurrentValue, out var fVal))
                     {
-                        SetBase(attributeType, fVal);
+                        SetBase(attributeType, fBase);
                         Set(attributeType, fVal);
                     }
                     break;
                 case Literal.Types.Double:
-                    if (double.TryParse(data.Value, out var dVal))
+                    if (double.TryParse(data.BaseValue, out var dBase) && double.TryParse(data.CurrentValue, out var dVal))
                     {
-                        SetBase(attributeType, dVal);
+                        SetBase(attributeType, dBase);
                         Set(attributeType, dVal);
                     }
                     break;

@@ -25,7 +25,6 @@ public class CommandRegistry
         if (isDebugMode)
         {
             _console.RegisterCommand("set", OnCommandSetVariable, Managers.Localization.Get(LocalizationKey.Console_Desc_Set));
-            _console.RegisterCommand("setbase", OnCommandSetBaseVariable, Managers.Localization.Get(LocalizationKey.Console_Desc_SetBase));
             _console.RegisterCommand("get", OnCommandGetVariable, Managers.Localization.Get(LocalizationKey.Console_Desc_Get));
             _console.RegisterCommand("fps", OnCommandToggleFPS, Managers.Localization.Get(LocalizationKey.Console_Desc_FPS));
             _console.RegisterCommand("time_debug", OnCommandTimeScale, Managers.Localization.Get(LocalizationKey.Console_Desc_Time));
@@ -38,7 +37,6 @@ public class CommandRegistry
         else
         {
             _console.UnregisterCommand("set");
-            _console.UnregisterCommand("setbase");
             _console.UnregisterCommand("get");
             _console.UnregisterCommand("fps");
             _console.UnregisterCommand("time_debug");
@@ -192,7 +190,7 @@ public class CommandRegistry
 
     private void OnCommandSetVariable(string[] args)
     {
-        if (!CheckIsDebugMode()) 
+        if (!CheckIsDebugMode())
             return;
 
         var character = Managers.Game.Player;
@@ -210,40 +208,28 @@ public class CommandRegistry
             return;
         }
 
-        character.Attributes.SetParsedValue(attributeType, args[1]);
-        Log.Info(LocalizationKey.Console_Set_Success, args[0], args[1]);
-        Managers.UI.RefreshDisplay<UIHeadUpDisplay>();
-    }
+        string rawValue = args[1];
+        bool isBaseMode = args.Length > 2 && (args[2].Equals("base", StringComparison.OrdinalIgnoreCase) || args[2].Equals("-b", StringComparison.OrdinalIgnoreCase));
 
-    private void OnCommandSetBaseVariable(string[] args)
-    {
-        if (!CheckIsDebugMode()) 
-            return;
-
-        var character = Managers.Game.Player;
-
-        if (args.Length < 2 || args[0].Equals("help", StringComparison.OrdinalIgnoreCase) || args[0].Equals("list", StringComparison.OrdinalIgnoreCase))
+        if (isBaseMode)
         {
-            Log.Warning(LocalizationKey.Console_SetBase_Usage);
-            PrintAttributeList(character);
-            return;
+            character.Attributes.SetBaseParsedValue(attributeType, rawValue);
+            character.Attributes.SetParsedValue(attributeType, rawValue);
+
+            Log.Info(LocalizationKey.Console_SetBase_Success, args[0], rawValue);
+        }
+        else
+        {
+            character.Attributes.SetParsedValue(attributeType, rawValue);
+            Log.Info(LocalizationKey.Console_Set_Success, args[0], rawValue);
         }
 
-        if (!Enum.TryParse<AttributeType>(args[0], true, out var attributeType) || character?.Attributes == null)
-        {
-            Log.Warning(Managers.Localization.Get(LocalizationKey.Console_Scene_Invalid, args[0]));
-            return;
-        }
-
-        character.Attributes.SetBaseParsedValue(attributeType, args[1]);
-        character.Attributes.SetParsedValue(attributeType, args[1]);
-        Log.Info(LocalizationKey.Console_SetBase_Success, args[0], args[1]);
         Managers.UI.RefreshDisplay<UIHeadUpDisplay>();
     }
 
     private void OnCommandGetVariable(string[] args)
     {
-        if (!CheckIsDebugMode()) 
+        if (!CheckIsDebugMode())
             return;
 
         var character = Managers.Game.Player;

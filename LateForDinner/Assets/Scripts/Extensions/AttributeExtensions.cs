@@ -225,7 +225,7 @@ public static class AttributeExtensions
                     dataType = data.DataType;
 
                 string stringValue = template.Value ?? "0";
-                list.Add(new AttributeSaveData() { Key = template.AttributeKey, DataType = dataType, Value = stringValue });
+                list.Add(new AttributeSaveData() { Key = template.AttributeKey, DataType = dataType, BaseValue = stringValue, CurrentValue = stringValue });
             }
         }
 

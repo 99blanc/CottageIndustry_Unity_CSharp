@@ -387,7 +387,6 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
     public override void OnGet()
     {
         base.OnGet();
-        Refresh();
         _initialModifierDash = Managers.Config.Option.Access.modifierDash;
         _initialLanguage = Managers.Config.Option.Access.language;
         _initialKeybindJson = Managers.Config.Option.Access.keybind;
