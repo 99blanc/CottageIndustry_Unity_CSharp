@@ -70,6 +70,7 @@ public class UIPausePopup : UIPopup
     public override void OnGet()
     {
         base.OnGet();
+        Refresh();
         Managers.Control.DisableActionMap(Literal.Maps.User);
         Managers.Game.Pause();
     }

@@ -141,6 +141,12 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         }
     }
 
+    public override void OnGet()
+    {
+        base.OnGet();
+        Refresh();
+    }
+
     public override void Refresh()
     {
         base.Refresh();
