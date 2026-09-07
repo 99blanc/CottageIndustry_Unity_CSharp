@@ -375,14 +375,17 @@ public class CommandRegistry
             Log.Info(LocalizationKey.Console_Item_Available);
 
             foreach (var kvp in Managers.Data.Items)
-                Log.Info(LocalizationKey.Console_Parameter_Format, kvp.Key, kvp.Value.NameKey);
+            {
+                string localizedName = Managers.Localization.Get(kvp.Value.NameKey);
+                Log.Info(LocalizationKey.Console_Parameter_Format_Split, kvp.Key, localizedName);
+            }
 
             return;
         }
 
         string subCommand = args[0].ToLower();
 
-        if (subCommand.Equals("clear"))
+        if (subCommand.Equals("-clear") || subCommand.Equals("-c"))
         {
             Managers.Inventory.ClearInventory();
             Log.Info(LocalizationKey.Console_Item_ClearSuccess);
@@ -392,35 +395,7 @@ public class CommandRegistry
             return;
         }
 
-        if (subCommand.Equals("remove"))
-        {
-            if (args.Length < 2 || !int.TryParse(args[1], out int removeItemID))
-            {
-                Log.Warning(LocalizationKey.Console_Item_RemoveUsage);
-                return;
-            }
-
-            int removeQty = 1;
-
-            if (args.Length > 2 && int.TryParse(args[2], out int parsedRemoveQty))
-                removeQty = Mathf.Max(1, parsedRemoveQty);
-
-            bool removeSuccess = Managers.Inventory.RemoveItem(removeItemID, removeQty);
-
-            if (removeSuccess)
-            {
-                Log.Info(LocalizationKey.Console_Item_RemoveSuccess, removeItemID, removeQty);
-                var inventoryPopup = Managers.UI.GetPopup<UIQuestInventoryPopup>();
-                inventoryPopup?.Refresh();
-                Managers.UI.RefreshDisplay<UIHeadUpDisplay>();
-            }
-            else
-                Log.Warning(LocalizationKey.Console_Item_RemoveFailed, removeItemID);
-
-            return;
-        }
-
-        if (!int.TryParse(args[0], out int itemID) || !Managers.Data.Items.ContainsKey(itemID))
+        if (!TryFindItemID(args[0], out int itemID))
         {
             Log.Warning(LocalizationKey.Console_Item_InvalidID, args[0]);
             return;
@@ -431,18 +406,79 @@ public class CommandRegistry
         if (args.Length > 1 && int.TryParse(args[1], out int parsedQuantity))
             quantity = Mathf.Max(1, parsedQuantity);
 
+        bool isRemoveMode = args.Length > 2 && (args[2].Equals("-remove", StringComparison.OrdinalIgnoreCase) || args[2].Equals("-r", StringComparison.OrdinalIgnoreCase));
+
+        if (isRemoveMode)
+            ProcessRemoveItem(itemID, quantity);
+        else
+            ProcessAddItem(itemID, quantity);
+    }
+
+    private void ProcessAddItem(int itemID, int quantity)
+    {
         var itemData = Managers.Data.Items[itemID];
         bool success = Managers.Inventory.AddItem(itemID, quantity);
 
         if (success)
         {
-            Log.Info(LocalizationKey.Console_Item_Success, itemID, itemData.NameKey, quantity);
-            var inventoryPopup = Managers.UI.GetPopup<UIQuestInventoryPopup>();
-            inventoryPopup?.Refresh();
-            Managers.UI.RefreshDisplay<UIHeadUpDisplay>();
+            string localizedItemName = Managers.Localization.Get(itemData.NameKey);
+            Log.Info(LocalizationKey.Console_Item_Success, itemID, localizedItemName, quantity);
+            RefreshInventoryUI();
         }
         else
             Log.Warning(LocalizationKey.Console_Item_InventoryFull);
+    }
+
+    private void ProcessRemoveItem(int itemID, int quantity)
+    {
+        var itemData = Managers.Data.Items[itemID];
+        string localizedItemName = Managers.Localization.Get(itemData.NameKey);
+        bool success = Managers.Inventory.RemoveItem(itemID, quantity);
+
+        if (success)
+        {
+            Log.Info(LocalizationKey.Console_Item_RemoveSuccess, itemID, localizedItemName, quantity);
+            RefreshInventoryUI();
+        }
+        else
+            Log.Warning(LocalizationKey.Console_Item_RemoveFailed, itemID, localizedItemName);
+    }
+
+    private void RefreshInventoryUI()
+    {
+        var inventoryPopup = Managers.UI.GetPopup<UIQuestInventoryPopup>();
+        inventoryPopup?.Refresh();
+        Managers.UI.RefreshDisplay<UIHeadUpDisplay>();
+    }
+
+    private bool TryFindItemID(string input, out int foundItemID)
+    {
+        foundItemID = 0;
+
+        if (int.TryParse(input, out int directID))
+        {
+            if (Managers.Data.Items.ContainsKey(directID))
+            {
+                foundItemID = directID;
+                return true;
+            }
+        }
+
+        string cleanedInput = input.Replace(" ", "");
+
+        foreach (var kvp in Managers.Data.Items)
+        {
+            var item = kvp.Value;
+            string localizedName = Managers.Localization.Get(item.NameKey);
+
+            if (!string.IsNullOrEmpty(localizedName) && localizedName.Replace(" ", "").Equals(cleanedInput, StringComparison.OrdinalIgnoreCase))
+            {
+                foundItemID = kvp.Key;
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private async UniTask OnCommandSaveGame(string[] args)

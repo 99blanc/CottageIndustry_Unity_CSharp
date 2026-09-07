@@ -45,6 +45,7 @@ public class UIConsoleSystem : UISystem
     public override void OnGet()
     {
         base.OnGet();
+        Refresh();
         _logSubscription?.Dispose();
         _logSubscription = Managers.Log.OnLogAdded.Subscribe(_ => Refresh());
         Managers.Control.DisableActionMap(Literal.Maps.User);
