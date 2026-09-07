@@ -50,7 +50,7 @@ public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
         _isEquipmentSlot = isEquipmentSlot;
         _data = slotData;
         var draggable = (IDraggableSlot<UIInventorySlot>)this;
-        draggable.SlotIndex = displayIndex;
+        draggable.SlotIndex = _data != null ? _data.GlobalIndex : -1;
         Refresh();
     }
 
@@ -63,6 +63,7 @@ public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
             GetImage(Images.SlotCoverImage).SetActive(true);
             EquipmentSlotType slotType = (EquipmentSlotType)((IDraggableSlot<UIInventorySlot>)this).SlotIndex;
             string coverSpriteName = slotType.ToSpriteAsEquipmentCover();
+
             if (!string.IsNullOrEmpty(coverSpriteName))
                 SetEquipmentImageSprite(coverSpriteName);
         }
@@ -97,29 +98,27 @@ public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
             GetText(Texts.SlotQuantityText).SetActive(false);
     }
 
-    public void Clear()
-    {
-        _data = null;
-        ((IDraggableSlot<UIInventorySlot>)this).SlotIndex = -1;
-        GetImage(Images.SlotItemImage).SetActive(false);
-        GetText(Texts.SlotQuantityText).text = string.Empty;
-        GetImage(Images.SlotCooldownImage).SetActive(false);
-    }
-
     public void OnMoveItem(UIInventorySlot targetSlot)
     {
-        if (targetSlot == null || targetSlot == this)
+        if (targetSlot == null || targetSlot == this) 
             return;
 
-        Managers.Inventory.HandleItemMove(CurrentSlotArea, this.Data, targetSlot.CurrentSlotArea, targetSlot.Data);
+        if (_data == null || targetSlot.Data == null) 
+            return;
+
+        Managers.Inventory.HandleItemMoveByGlobalIndex(CurrentSlotArea, _data.GlobalIndex, targetSlot.CurrentSlotArea, targetSlot.Data.GlobalIndex);
     }
 
     private void OnClickSlot(PointerEventData data)
     {
-        var draggable = (IDraggableSlot<UIInventorySlot>)this;
-        Debug.Log($"Clicked Slot - Area: {CurrentSlotArea}, SlotIndex: {draggable.SlotIndex}, ItemID: {_data?.ItemID}");
+        Debug.Log($"Clicked Slot - GlobalIndex: {_data?.GlobalIndex}, ItemID: {_data?.ItemID}");
     }
 
     private void SetEquipmentImageSprite(string spriteName)
-        => GetImage(Images.SlotCoverImage).sprite = Managers.Resource.GetSprite(Define.Atlas.Common, spriteName);
+    {
+        var image = GetImage(Images.SlotCoverImage);
+
+        if (image != null)
+            image.sprite = Managers.Resource.GetSprite(Define.Atlas.Common, spriteName);
+    }
 }

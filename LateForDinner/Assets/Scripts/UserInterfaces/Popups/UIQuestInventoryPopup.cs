@@ -161,17 +161,20 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
 
     private void RefreshInventory(ItemType? type)
     {
-        var slotDataList = Managers.Inventory.GetSlotsByType(type).ToList();
-        int maxDisplayCount = type == null ? Define.Amount.MaxInventorySlot : Define.Amount.InventoryTabSize;
+        var allSlots = Managers.Inventory.GetSlotsByType(null).ToList();
+        int tabSize = Define.Amount.InventoryTabSize;
+        int startIndex = type.HasValue ? Managers.Inventory.GetTabStartIndex(type.Value) : 0;
+        int displayCount = type.HasValue ? tabSize : Define.Amount.MaxInventorySlot;
 
         for (int index = 0; index < _createdSlots.Count; index++)
         {
-            if (index < maxDisplayCount)
+            if (index < displayCount)
             {
                 _createdSlots[index].SetActive(true);
+                int dataIndex = type.HasValue ? startIndex + index : index;
 
-                if (index < slotDataList.Count)
-                    _createdSlots[index].Setup(index, slotDataList[index], false);
+                if (dataIndex < allSlots.Count)
+                    _createdSlots[index].Setup(index, allSlots[dataIndex], false);
             }
             else
                 _createdSlots[index].SetActive(false);

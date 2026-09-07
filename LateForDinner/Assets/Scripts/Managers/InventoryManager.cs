@@ -7,10 +7,11 @@ using ZLinq;
 
 public class InventoryManager
 {
+    public Observable<Unit> OnInventoryChanged => _onInventoryChanged;
+    private readonly Subject<Unit> _onInventoryChanged = new Subject<Unit>();
     private List<InventorySlot> _slots = new List<InventorySlot>(Define.Amount.MaxInventorySlot);
     private List<InventorySlot> _equipmentSlots = new List<InventorySlot>(Define.Amount.MaxEquipmentSlot);
     private List<InventorySlot> _quickSlots = new List<InventorySlot>(Define.Amount.MaxQuickSlot);
-    public Subject<Unit> OnInventoryChanged = new Subject<Unit>();
 
     public void InitInventory(List<InventorySlot> savedSlots, List<InventorySlot> savedQuickSlots, List<InventorySlot> savedEquipmentSlots = null)
     {
@@ -35,6 +36,9 @@ public class InventoryManager
                 Quantity = 0
             });
         }
+
+        for (int i = 0; i < slots.Count; i++)
+            slots[i].GlobalIndex = i;
     }
 
     public bool AddItem(int itemID, int quantity)
@@ -42,15 +46,12 @@ public class InventoryManager
         if (!TryGetValidItemData(itemID, out var itemData, out var itemType))
             return false;
 
-        int tabSize = Define.Amount.InventoryTabSize;
-        int startIndex = GetTabStartIndex(itemType);
-
-        if (!HasEnoughSpaceInTab(itemID, itemData.MaxStack, startIndex, tabSize, quantity))
+        if (!HasEnoughSpaceInAll(_slots, itemID, itemData.MaxStack, quantity))
             return false;
 
-        FillExistingItemSlotsInTab(itemID, itemData.MaxStack, startIndex, tabSize, ref quantity);
-        FillEmptySlotsInTab(itemID, itemData.MaxStack, startIndex, tabSize, ref quantity);
-        OnInventoryChanged.OnNext(Unit.Default);
+        FillExistingItemSlots(_slots, itemID, itemData.MaxStack, ref quantity);
+        FillEmptySlots(_slots, itemID, itemData.MaxStack, ref quantity);
+        _onInventoryChanged.OnNext(Unit.Default);
         return true;
     }
 
@@ -58,55 +59,55 @@ public class InventoryManager
     {
         int remainingToRemove = quantity;
 
-        for (int index = 0; index < _slots.Count; index++)
+        foreach (var slot in _slots)
         {
-            if (remainingToRemove <= 0)
+            if (remainingToRemove <= 0) 
                 break;
 
-            var slot = _slots[index];
-
-            if (slot.ItemID != itemID || slot.Quantity <= 0)
+            if (slot.ItemID != itemID || slot.Quantity <= 0) 
                 continue;
 
             int removeAmount = Math.Min(remainingToRemove, slot.Quantity);
             slot.Quantity -= removeAmount;
             remainingToRemove -= removeAmount;
 
-            if (slot.Quantity <= 0)
+            if (slot.Quantity <= 0) 
                 ClearSlot(slot);
         }
 
         bool success = remainingToRemove < quantity;
 
         if (success)
-            OnInventoryChanged.OnNext(Unit.Default);
+            _onInventoryChanged.OnNext(Unit.Default);
 
         return success;
     }
 
-    public bool HandleItemMove(SlotArea sourceArea, InventorySlot sourceSlot, SlotArea targetArea, InventorySlot targetSlot)
+    public bool HandleItemMoveByGlobalIndex(SlotArea sourceArea, int sourceGlobalIndex, SlotArea targetArea, int targetGlobalIndex)
     {
-        if (sourceSlot == null || targetSlot == null || sourceSlot == targetSlot)
+        if (sourceArea != SlotArea.Inventory || targetArea != SlotArea.Inventory)
             return false;
 
-        bool success = (sourceArea, targetArea) switch
-        {
-            (SlotArea.Inventory, SlotArea.Inventory) => MoveItem(sourceSlot, targetSlot),
-            (SlotArea.Inventory, SlotArea.Equipment) => SwapSlotsReturn(sourceSlot, targetSlot),
-            (SlotArea.Equipment, SlotArea.Inventory) => SwapSlotsReturn(sourceSlot, targetSlot),
-            (SlotArea.Equipment, SlotArea.Equipment) => SwapSlotsReturn(sourceSlot, targetSlot),
-            _ => false
-        };
+        if (sourceGlobalIndex < 0 || sourceGlobalIndex >= _slots.Count || targetGlobalIndex < 0 || targetGlobalIndex >= _slots.Count)
+            return false;
+
+        var sourceSlot = _slots[sourceGlobalIndex];
+        var targetSlot = _slots[targetGlobalIndex];
+
+        if (sourceSlot == targetSlot) 
+            return false;
+
+        bool success = MoveItem(sourceSlot, targetSlot);
 
         if (success)
-            OnInventoryChanged.OnNext(Unit.Default);
+            _onInventoryChanged.OnNext(Unit.Default);
 
         return success;
     }
 
     private bool MoveItem(InventorySlot fromSlot, InventorySlot toSlot)
     {
-        if (fromSlot.ItemID == 0)
+        if (fromSlot.ItemID == 0) 
             return false;
 
         if (toSlot.ItemID == 0)
@@ -128,7 +129,7 @@ public class InventoryManager
                 toSlot.Quantity += transferAmount;
                 fromSlot.Quantity -= transferAmount;
 
-                if (fromSlot.Quantity <= 0)
+                if (fromSlot.Quantity <= 0) 
                     ClearSlot(fromSlot);
 
                 return true;
@@ -177,7 +178,7 @@ public class InventoryManager
             }
         }
 
-        OnInventoryChanged.OnNext(Unit.Default);
+        _onInventoryChanged.OnNext(Unit.Default);
     }
 
     public IEnumerable<InventorySlot> GetSlotsByType(ItemType? currentTabType)
@@ -209,33 +210,31 @@ public class InventoryManager
         return true;
     }
 
-    private bool HasEnoughSpaceInTab(int itemID, int maxStack, int startIndex, int tabSize, int quantity)
+    private bool HasEnoughSpaceInAll(List<InventorySlot> slots, int itemID, int maxStack, int quantity)
     {
         int required = quantity;
-
-        for (int index = 0; index < tabSize && required > 0; index++)
+        foreach (var slot in slots)
         {
-            var slot = _slots[startIndex + index];
+            if (required <= 0) 
+                break;
+
             if (slot.ItemID == itemID && slot.Quantity < maxStack)
                 required -= (maxStack - slot.Quantity);
-        }
-
-        for (int index = 0; index < tabSize && required > 0; index++)
-        {
-            var slot = _slots[startIndex + index];
-            if (slot.ItemID == 0)
+            else if (slot.ItemID == 0)
                 required -= maxStack;
         }
 
         return required <= 0;
     }
 
-    private void FillExistingItemSlotsInTab(int itemID, int maxStack, int startIndex, int tabSize, ref int remaining)
+    private void FillExistingItemSlots(List<InventorySlot> slots, int itemID, int maxStack, ref int remaining)
     {
-        for (int index = 0; index < tabSize && remaining > 0; index++)
+        foreach (var slot in slots)
         {
-            var slot = _slots[startIndex + index];
-            if (slot.ItemID != itemID || slot.Quantity >= maxStack)
+            if (remaining <= 0) 
+                break;
+
+            if (slot.ItemID != itemID || slot.Quantity >= maxStack) 
                 continue;
 
             int add = Math.Min(remaining, maxStack - slot.Quantity);
@@ -244,12 +243,14 @@ public class InventoryManager
         }
     }
 
-    private void FillEmptySlotsInTab(int itemID, int maxStack, int startIndex, int tabSize, ref int remaining)
+    private void FillEmptySlots(List<InventorySlot> slots, int itemID, int maxStack, ref int remaining)
     {
-        for (int index = 0; index < tabSize && remaining > 0; index++)
+        foreach (var slot in slots)
         {
-            var slot = _slots[startIndex + index];
-            if (slot.ItemID != 0)
+            if (remaining <= 0) 
+                break;
+
+            if (slot.ItemID != 0) 
                 continue;
 
             int add = Math.Min(remaining, maxStack);
@@ -265,39 +266,10 @@ public class InventoryManager
         slot.Quantity = 0;
     }
 
-    private bool SwapSlotsReturn(InventorySlot a, InventorySlot b)
-    {
-        SwapSlots(a, b);
-        return true;
-    }
-
     private void SwapSlots(InventorySlot a, InventorySlot b)
     {
         (a.ItemID, b.ItemID) = (b.ItemID, a.ItemID);
         (a.Quantity, b.Quantity) = (b.Quantity, a.Quantity);
-    }
-
-    public List<InventorySlot> ExportSaveData() =>
-        _slots.Select(slot => new InventorySlot { GlobalIndex = slot.GlobalIndex, SlotIndex = slot.SlotIndex, ItemID = slot.ItemID, Quantity = slot.Quantity }).ToList();
-
-    public List<InventorySlot> ExportQuickSlotSaveData() =>
-        _quickSlots.Select(slot => new InventorySlot { GlobalIndex = slot.GlobalIndex, SlotIndex = slot.SlotIndex, ItemID = slot.ItemID, Quantity = slot.Quantity }).ToList();
-
-    public List<InventorySlot> ExportEquipmentSlotSaveData() =>
-        _equipmentSlots.Select(slot => new InventorySlot { GlobalIndex = slot.GlobalIndex, SlotIndex = slot.SlotIndex, ItemID = slot.ItemID, Quantity = slot.Quantity }).ToList();
-
-    public void ClearInventory()
-    {
-        ClearAllSlots(_slots);
-        ClearAllSlots(_equipmentSlots);
-        ClearAllSlots(_quickSlots);
-        OnInventoryChanged.OnNext(Unit.Default);
-    }
-
-    private void ClearAllSlots(List<InventorySlot> slots)
-    {
-        foreach (var slot in slots)
-            ClearSlot(slot);
     }
 
     public int GetTabStartIndex(ItemType? type)
@@ -310,5 +282,55 @@ public class InventoryManager
             ItemType.Etc => tabSize * 2,
             _ => 0
         };
+    }
+
+    public void ClearInventory()
+    {
+        foreach (var slot in _slots)
+            ClearSlot(slot);
+
+        foreach (var slot in _equipmentSlots)
+            ClearSlot(slot);
+
+        foreach (var slot in _quickSlots)
+            ClearSlot(slot);
+
+        _onInventoryChanged.OnNext(Unit.Default);
+    }
+
+    public List<InventorySlot> ExportSaveData()
+    {
+        return _slots
+        .Select(slot => slot == null ? null : new InventorySlot
+        {
+            GlobalIndex = slot.GlobalIndex,
+            SlotIndex = slot.SlotIndex,
+            ItemID = slot.ItemID,
+            Quantity = slot.Quantity
+        }).ToList();
+    }
+
+    public List<InventorySlot> ExportQuickSlotSaveData()
+    {
+        return _quickSlots
+        .Select(slot => slot == null ? null : new InventorySlot
+        {
+            GlobalIndex = slot.GlobalIndex,
+            SlotIndex = slot.SlotIndex,
+            ItemID = slot.ItemID,
+            Quantity = slot.Quantity
+        }).ToList();
+    }
+
+    public List<InventorySlot> ExportEquipmentSlotSaveData()
+    {
+        return _equipmentSlots
+        .Select(slot => slot == null ? null : new InventorySlot
+        {
+            GlobalIndex = slot.GlobalIndex,
+            SlotIndex = slot.SlotIndex,
+            ItemID = slot.ItemID,
+            Quantity = slot.Quantity
+        }).ToList();
     }
 }
