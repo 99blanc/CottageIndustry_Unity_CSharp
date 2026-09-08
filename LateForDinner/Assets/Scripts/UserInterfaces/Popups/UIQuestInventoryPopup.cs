@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using ZLinq;
 
 public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
@@ -256,18 +257,21 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
     private void OnClickEquipmentTab(PointerEventData data)
     {
         _currentTabType = ItemType.Equipment;
+        OnClickScrollUp(data);
         RefreshInventory(_currentTabType);
     }
 
     private void OnClickConsumptionTab(PointerEventData data)
     {
         _currentTabType = ItemType.Consumption;
+        OnClickScrollUp(data);
         RefreshInventory(_currentTabType);
     }
 
     private void OnClickEtcTab(PointerEventData data)
     {
         _currentTabType = ItemType.Etc;
+        OnClickScrollUp(data);
         RefreshInventory(_currentTabType);
     }
 

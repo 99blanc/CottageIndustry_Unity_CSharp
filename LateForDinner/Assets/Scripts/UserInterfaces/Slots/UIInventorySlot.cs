@@ -43,6 +43,10 @@ public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
+        GetImage(Images.SlotCoverImage).raycastTarget = false;
+        GetImage(Images.SlotItemImage).raycastTarget = false;
+        GetImage(Images.SlotCooldownImage).raycastTarget = false;
+        GetText(Texts.SlotQuantityText).raycastTarget = false;
         GetButton(Buttons.SlotButton).BindView(OnClickSlot, ViewEvent.RightClick, this);
     }
 
