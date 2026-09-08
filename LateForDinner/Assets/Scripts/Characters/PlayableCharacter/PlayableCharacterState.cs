@@ -104,10 +104,13 @@ public class PlayableCharacterRollState : CharacterState
         if (_inputProvider == null)
             return;
 
-        float moveInput = _inputProvider.Invoke();
+        float directionX = _inputProvider?.Invoke() ?? 0f;
 
-        if (Mathf.Abs(moveInput) > 0.01f)
-            rollable.Roll(moveInput);
+        if (Mathf.Abs(directionX) > 0.01f)
+            rollable.Roll(directionX);
+
+        if (Owner is IMovableCharacter movable)
+            movable.Move(directionX);
     }
 
     private void PlayRollAnimation()

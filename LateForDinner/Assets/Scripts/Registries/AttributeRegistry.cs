@@ -2,6 +2,7 @@ using LateForDinner.Data;
 using R3;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class AttributeRegistry
 {
@@ -127,7 +128,7 @@ public class AttributeRegistry
             }
         }
     }
-
+    
     public IEnumerable<AttributeType> GetRegisteredAttributeTypes()
         => _attributes.Keys;
 }

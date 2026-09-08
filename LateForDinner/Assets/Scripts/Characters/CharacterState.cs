@@ -99,10 +99,7 @@ public class FallState : CharacterState
         float moveInput = _inputProvider.Invoke();
 
         if (Owner is IFallableCharacter fallable)
-        {
             fallable.Fall(moveInput);
-            return;
-        }
 
         if (Owner is IMovableCharacter movable)
             movable.Move(moveInput);
