@@ -29,7 +29,13 @@ public class UIQuickSlot : UISlot
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
         GetButton(Buttons.QuickSlotButton).BindView(OnClickQuickSlot, ViewEvent.LeftClick, this);
+        Refresh();
     }
 
     public void Setup(int index, InventorySlot slotData)

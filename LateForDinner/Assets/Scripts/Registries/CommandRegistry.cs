@@ -215,13 +215,14 @@ public class CommandRegistry
         {
             character.Attributes.SetBaseParsedValue(attributeType, rawValue);
             character.Attributes.SetParsedValue(attributeType, rawValue);
-
-            Log.Info(LocalizationKey.Console_SetBase_Success, args[0], rawValue);
+            string appliedVal = character.Attributes.GetParsedValueString(attributeType);
+            Log.Info(LocalizationKey.Console_SetBase_Success, args[0], appliedVal);
         }
         else
         {
             character.Attributes.SetParsedValue(attributeType, rawValue);
-            Log.Info(LocalizationKey.Console_Set_Success, args[0], rawValue);
+            string appliedVal = character.Attributes.GetParsedValueString(attributeType);
+            Log.Info(LocalizationKey.Console_Set_Success, args[0], appliedVal);
         }
 
         Managers.UI.RefreshDisplay<UIHeadUpDisplay>();
@@ -353,14 +354,15 @@ public class CommandRegistry
             await Managers.Game.SpawnPlayerAsync(CharacterID.Protagonist);
         }
 
-        SpawnGeneralCharacter(targetCharacterID);
+        await SpawnGeneralCharacter(targetCharacterID);
     }
 
-    private void SpawnGeneralCharacter(CharacterID characterID)
+    private async UniTask SpawnGeneralCharacter(CharacterID characterID)
     {
+        var data = Managers.Save.CurrentData;
         Vector2 lookDir = Managers.Game.Player.GetLookDirection();
         Vector3 spawnPosition = Managers.Game.Player.transform.position + (Vector3)(lookDir * 2f);
-        Managers.Game.SpawnCharacterAsync<Character>(characterID, spawnPosition).Forget();
+        await Managers.Game.SpawnCharacterAsync<Character>(characterID, !data.PlayerFlipX, spawnPosition, data.PlayerRotation);
         Log.Info(LocalizationKey.Console_Spawn_Success, characterID);
     }
 

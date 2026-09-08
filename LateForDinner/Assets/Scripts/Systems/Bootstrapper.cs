@@ -11,6 +11,7 @@ public class Bootstrapper
     {
         await Managers.Instance.LoadAsync();
         Managers.Log.Setup();
+        Managers.Pool.Setup();
         Managers.Console.Setup();
         Managers.Camera.Setup();
         await Managers.Preload.Release_BootAsync();
@@ -19,7 +20,7 @@ public class Bootstrapper
         Managers.UI.Setup();
         Managers.Control.Setup();
         Managers.Cooldown.Setup();
-        await Managers.UI.OpenDisplayAsync<UISplashDisplay>().PlayAsync();
+        await Managers.UI.OpenDisplay<UISplashDisplay>().PlayAsync();
         Managers.UI.OpenDisplay<UITitleDisplay>();
         Managers.Camera.SetBackgroundColor(Color.gray);
     }

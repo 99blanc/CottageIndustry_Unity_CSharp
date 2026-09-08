@@ -36,6 +36,11 @@ public class UIConfirmPopup : UIPopup, IDraggablePopup, IFocusablePopup
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
         GetImage(Images.ConfirmButtonImage).BindState(_confirmButtonState, Define.Atlas.Common, this);
         GetImage(Images.CancelButtonImage).BindState(_cancelButtonState, Define.Atlas.Common, this);
         GetButton(Buttons.ConfirmButton).BindViewAsButton(_ => OnClickConfirm(), ViewEvent.LeftClick, this, _confirmButtonState);

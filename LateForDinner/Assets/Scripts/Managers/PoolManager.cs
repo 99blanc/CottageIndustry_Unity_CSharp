@@ -32,8 +32,13 @@ public class PoolManager
     {
         _root = new GameObject { name = Literal.Roots.Pools };
         _root.transform.SetParent(Managers.Instance.transform, false);
-        SetupFolders();
         return _root;
+    }
+
+    public void Setup()
+    {
+        var _ = Root;
+        SetupFolders();
     }
 
     private void SetupFolders()
@@ -56,7 +61,7 @@ public class PoolManager
         if (IsInstanceNull(instance))
             return (null, null);
 
-        InitializePoolable(instance, isNew);
+        InitPoolObject(instance, isNew);
         IDisposable rentHandle = Disposable.Create(() => Push(instance, key));
         return (instance, rentHandle);
     }
@@ -79,7 +84,7 @@ public class PoolManager
         if (IsInstanceNull(instance))
             return (null, null);
 
-        InitializePoolable(instance, isNew);
+        InitPoolObject(instance, isNew);
         IDisposable rentHandle = Disposable.Create(() => Push(instance, key));
         return (instance, rentHandle);
     }
@@ -123,7 +128,11 @@ public class PoolManager
     public async UniTask PrewarmAsync<T>(int count, Transform parent = null) where T : Component
     {
         string key = typeof(T).Name;
+        await PrewarmAsync(key, count, parent);
+    }
 
+    public async UniTask PrewarmAsync(string key, int count, Transform parent = null)
+    {
         if (HasEnoughCachedInstances(key, count))
             return;
 
@@ -239,7 +248,7 @@ public class PoolManager
         }
     }
 
-    private void InitializePoolable(GameObject instance, bool isNew)
+    private void InitPoolObject(GameObject instance, bool isNew)
     {
         if (!instance.TryGetComponent<IPoolable>(out var poolable))
             return;

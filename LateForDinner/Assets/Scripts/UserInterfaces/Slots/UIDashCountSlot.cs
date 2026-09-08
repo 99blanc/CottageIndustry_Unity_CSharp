@@ -2,7 +2,6 @@ using Cysharp.Threading.Tasks;
 using R3;
 using System;
 using System.Threading;
-using UnityEngine;
 
 public class UIDashCountSlot : UISlot, IAnimatableUI
 {
@@ -19,7 +18,6 @@ public class UIDashCountSlot : UISlot, IAnimatableUI
 
     private int _slotIndex;
     private UI_DashState _currentState = UI_DashState.Full;
-    private PlayableCharacter _cachedPlayer;
 
     public override void OnInit()
     {
@@ -27,13 +25,19 @@ public class UIDashCountSlot : UISlot, IAnimatableUI
         BindImage(typeof(Images));
     }
 
-    public void InitDashSlot(PlayableCharacter player, int index)
+    public void SetDashSlot(int index)
     {
-        _cachedPlayer = player;
+        var player = Managers.Game.Player;
         _slotIndex = index;
         int initialCount = player.Attributes.Get<int>(AttributeType.DashCount).CurrentValue;
         _currentState = GetStateFromDash(initialCount, _slotIndex);
         ApplyStaticState(_currentState);
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
+        var player = Managers.Game.Player;
         player.Attributes.Get<int>(AttributeType.DashCount)
         .AsObservable()
         .Skip(1)
@@ -41,23 +45,19 @@ public class UIDashCountSlot : UISlot, IAnimatableUI
         {
             slot.UpdateDashState(currentCount);
         }).RegisterToPool(this);
+        Refresh();
     }
 
     public override void Refresh()
     {
         base.Refresh();
-
-        if (_cachedPlayer == null)
-            _cachedPlayer = Managers.Game.Player;
-
-        if (_cachedPlayer == null || _cachedPlayer.Attributes == null)
-            return;
-
-        var dashAttr = _cachedPlayer.Attributes.Get<int>(AttributeType.DashCount);
+        var player = Managers.Game.Player;
+        var dashAttr = player.Attributes.Get<int>(AttributeType.DashCount);
 
         if (dashAttr != null)
         {
-            _currentState = GetStateFromDash(dashAttr.CurrentValue, _slotIndex);
+            UI_DashState realState = GetStateFromDash(dashAttr.CurrentValue, _slotIndex);
+            _currentState = realState;
             ApplyStaticState(_currentState);
         }
     }

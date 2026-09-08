@@ -37,13 +37,57 @@ public class UIHeadUpDisplay : UIDisplay
         BindRectTransform(typeof(RectTransforms));
         BindImage(typeof(Images));
         BindPanel(typeof(Panels));
-        InitQuickSlots();
-        InitDashSlots();
-        InitHealthSlots();
-        InitTemporaryHealthSlots();
     }
 
-    private void InitQuickSlots()
+    public override void OnGet()
+    {
+        base.OnGet();
+        ClearQuickSlots();
+        GetQuickSlots();
+        GetDashSlots();
+        GetHealthSlots();
+        GetTemporaryHealthSlots();
+        var player = Managers.Game.Player;
+        var dashAttribute = player.Attributes.GetBase<int>(AttributeType.DashCount);
+        dashAttribute.AsObservable()
+        .Skip(1)
+        .Subscribe(this, (maxCount, hud) =>
+        {
+            hud.UpdateDashSlots(maxCount);
+        }).RegisterToPool(this);
+        var healthAttribute = player.Attributes.Get<int>(AttributeType.Health);
+        var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.Health);
+        Observable.CombineLatest(healthAttribute.AsObservable(), maxHealthAttribute.AsObservable(), (health, maxHealth) => (health, maxHealth))
+       .Skip(1)
+       .Subscribe(this, (tuple, hud) =>
+       {
+           int totalSlotCount = Mathf.CeilToInt(tuple.maxHealth / 2f);
+           hud.UpdateHealthSlots(totalSlotCount);
+       }).RegisterToPool(this);
+        var TemporaryHealthAttribute = player.Attributes.Get<int>(AttributeType.TemporaryHealth);
+        var maxTemporaryHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
+        Observable.CombineLatest(TemporaryHealthAttribute.AsObservable(), maxTemporaryHealthAttribute.AsObservable(), (health, maxHealth) => (health, maxHealth))
+        .Skip(1)
+        .Subscribe(this, (tuple, hud) =>
+        {
+            int totalSlotCount = Mathf.CeilToInt(tuple.maxHealth / 2f);
+            hud.UpdateTemporaryHealthSlots(totalSlotCount);
+        }).RegisterToPool(this);
+        Refresh();
+    }
+
+    private void ClearQuickSlots()
+    {
+        foreach (var slot in _quickSlots)
+        {
+            if (slot != null)
+                Managers.Pool.Push(slot);
+        }
+
+        _quickSlots.Clear();
+    }
+
+    private void GetQuickSlots()
     {
         var content = GetRectTransform(RectTransforms.SlotContent).transform;
         var quickSlotsData = Managers.Inventory?.GetQuickSlots();
@@ -61,82 +105,46 @@ public class UIHeadUpDisplay : UIDisplay
         }
     }
 
-    private void InitDashSlots()
+    private void GetDashSlots()
     {
         var player = Managers.Game.Player;
-
-        if (player == null)
-            return;
-
         var dashAttribute = player.Attributes.GetBase<int>(AttributeType.DashCount);
-        UpdateDashSlots(dashAttribute.CurrentValue, player);
-        dashAttribute.AsObservable()
-        .Skip(1)
-        .Subscribe(this, (maxCount, hud) =>
-        {
-            hud.UpdateDashSlots(maxCount, player);
-        }).RegisterToPool(this);
+        UpdateDashSlots(dashAttribute.CurrentValue);
     }
 
-    private void InitHealthSlots()
+    private void GetHealthSlots()
     {
         var player = Managers.Game.Player;
-
-        if (player == null)
-            return;
-
         var healthAttribute = player.Attributes.Get<int>(AttributeType.Health);
         var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.Health);
         int initialSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
-        UpdateHealthSlots(initialSlotCount, player);
-        Observable.CombineLatest(healthAttribute.AsObservable(), maxHealthAttribute.AsObservable(), (health, maxHealth) => (health, maxHealth))
-        .Skip(1)
-        .Subscribe(this, (tuple, hud) =>
-        {
-            int totalSlotCount = Mathf.CeilToInt(tuple.maxHealth / 2f);
-            hud.UpdateHealthSlots(totalSlotCount, player);
-        }).RegisterToPool(this);
+        UpdateHealthSlots(initialSlotCount);
     }
 
-    private void InitTemporaryHealthSlots()
+    private void GetTemporaryHealthSlots()
     {
         var player = Managers.Game.Player;
-
-        if (player == null)
-            return;
-
-        var healthAttribute = player.Attributes.Get<int>(AttributeType.TemporaryHealth);
-        var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
-        int initialSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
-        UpdateTemporaryHealthSlots(initialSlotCount, player);
-        Observable.CombineLatest(healthAttribute.AsObservable(), maxHealthAttribute.AsObservable(), (health, maxHealth) => (health, maxHealth))
-        .Skip(1)
-        .Subscribe(this, (tuple, hud) =>
-        {
-            int totalSlotCount = Mathf.CeilToInt(tuple.maxHealth / 2f);
-            hud.UpdateTemporaryHealthSlots(totalSlotCount, player);
-        }).RegisterToPool(this);
+        var TemporaryHealthAttribute = player.Attributes.Get<int>(AttributeType.TemporaryHealth);
+        var maxTemporaryHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
+        int initialSlotCount = Mathf.CeilToInt(maxTemporaryHealthAttribute.CurrentValue / 2f);
+        UpdateTemporaryHealthSlots(initialSlotCount);
     }
 
     public override void Refresh()
     {
         base.Refresh();
         var player = Managers.Game.Player;
-
-        if (player == null || player.Attributes == null)
-            return;
-
         var dashAttribute = player.Attributes.GetBase<int>(AttributeType.DashCount);
 
         if (dashAttribute != null)
-            UpdateDashSlots(dashAttribute.CurrentValue, player);
+            UpdateDashSlots(dashAttribute.CurrentValue);
 
         var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.Health);
 
         if (maxHealthAttribute != null)
         {
             int initialSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
-            UpdateHealthSlots(initialSlotCount, player);
+            UpdateHealthSlots(initialSlotCount);
         }
 
         var maxTempHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
@@ -144,20 +152,11 @@ public class UIHeadUpDisplay : UIDisplay
         if (maxTempHealthAttribute != null)
         {
             int initialSlotCount = Mathf.CeilToInt(maxTempHealthAttribute.CurrentValue / 2f);
-            UpdateTemporaryHealthSlots(initialSlotCount, player);
+            UpdateTemporaryHealthSlots(initialSlotCount);
         }
-
-        foreach (var slot in _dashSlots)
-            slot?.Refresh();
-
-        foreach (var slot in _healthSlots)
-            slot?.Refresh();
-
-        foreach (var slot in _temporaryHealthSlots)
-            slot?.Refresh();
     }
 
-    private void UpdateDashSlots(int maxDashCount, PlayableCharacter player)
+    private void UpdateDashSlots(int maxDashCount)
     {
         var content = GetRectTransform(RectTransforms.DashContent).transform;
 
@@ -167,7 +166,7 @@ public class UIHeadUpDisplay : UIDisplay
 
             if (slot != null)
             {
-                slot.InitDashSlot(player, _dashSlots.Count);
+                slot.SetDashSlot(_dashSlots.Count);
                 _dashSlots.Add(slot);
             }
             else 
@@ -185,7 +184,7 @@ public class UIHeadUpDisplay : UIDisplay
         }
     }
 
-    private void UpdateHealthSlots(int maxHealthCount, PlayableCharacter player)
+    private void UpdateHealthSlots(int maxHealthCount)
     {
         var content = GetRectTransform(RectTransforms.HealthContent).transform;
 
@@ -195,7 +194,7 @@ public class UIHeadUpDisplay : UIDisplay
 
             if (slot != null)
             {
-                slot.InitHealthSlot(player, _healthSlots.Count, UIRemainHealthSlot.UI_HealthSlotType.Normal);
+                slot.SetHealthSlot(_healthSlots.Count, UIRemainHealthSlot.UI_HealthSlotType.Normal);
                 _healthSlots.Add(slot);
             }
             else
@@ -215,7 +214,7 @@ public class UIHeadUpDisplay : UIDisplay
         GetRectTransform(RectTransforms.TemporaryHealthContent).SetAsLastSibling();
     }
 
-    private void UpdateTemporaryHealthSlots(int maxTemporaryHealthCount, PlayableCharacter player)
+    private void UpdateTemporaryHealthSlots(int maxTemporaryHealthCount)
     {
         var content = GetRectTransform(RectTransforms.TemporaryHealthContent).transform;
 
@@ -225,7 +224,7 @@ public class UIHeadUpDisplay : UIDisplay
 
             if (slot != null)
             {
-                slot.InitHealthSlot(player, _temporaryHealthSlots.Count, UIRemainHealthSlot.UI_HealthSlotType.Temporary);
+                slot.SetHealthSlot(_temporaryHealthSlots.Count, UIRemainHealthSlot.UI_HealthSlotType.Temporary);
                 _temporaryHealthSlots.Add(slot);
             }
             else

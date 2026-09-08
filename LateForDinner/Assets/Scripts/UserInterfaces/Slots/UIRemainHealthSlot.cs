@@ -26,7 +26,6 @@ public class UIRemainHealthSlot : UISlot, IAnimatableUI
     private int _slotIndex;
     private UI_HealthSlotType _slotType;
     private UI_HealthState _currentState = UI_HealthState.Full;
-    private PlayableCharacter _cachedPlayer;
 
     public override void OnInit()
     {
@@ -34,9 +33,9 @@ public class UIRemainHealthSlot : UISlot, IAnimatableUI
         BindImage(typeof(Images));
     }
 
-    public void InitHealthSlot(PlayableCharacter player, int index, UI_HealthSlotType slotType)
+    public void SetHealthSlot(int index, UI_HealthSlotType slotType)
     {
-        _cachedPlayer = player;
+        var player = Managers.Game.Player;
         _slotIndex = index;
         _slotType = slotType;
         AttributeType currentAttrType = (_slotType == UI_HealthSlotType.Temporary) ? AttributeType.TemporaryHealth : AttributeType.Health;
@@ -44,32 +43,36 @@ public class UIRemainHealthSlot : UISlot, IAnimatableUI
         int slotThreshold = _slotIndex * 2;
         _currentState = GetStateFromHealth(healthAttr.CurrentValue, slotThreshold);
         ApplyStaticState(_currentState);
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
+        var player = Managers.Game.Player;
+        AttributeType currentAttrType = (_slotType == UI_HealthSlotType.Temporary) ? AttributeType.TemporaryHealth : AttributeType.Health;
+        var healthAttr = player.Attributes.Get<int>(currentAttrType);
         Observable.CombineLatest(healthAttr.AsObservable(), player.Attributes.GetBase<int>(currentAttrType).AsObservable(), (health, maxHealth) => (health, maxHealth))
         .Skip(1)
         .Subscribe(this, (tuple, slot) =>
         {
             slot.UpdateHealthState(tuple.health, tuple.maxHealth);
         }).RegisterToPool(this);
+        Refresh();
     }
 
     public override void Refresh()
     {
         base.Refresh();
-
-        if (_cachedPlayer == null)
-            _cachedPlayer = Managers.Game.Player;
-
-        if (_cachedPlayer == null || _cachedPlayer.Attributes == null)
-            return;
-
+        var player = Managers.Game.Player;
         AttributeType currentAttrType = (_slotType == UI_HealthSlotType.Temporary) ? AttributeType.TemporaryHealth : AttributeType.Health;
-        var healthAttr = _cachedPlayer.Attributes.Get<int>(currentAttrType);
+        var healthAttr = player.Attributes.Get<int>(currentAttrType);
 
         if (healthAttr != null)
         {
             int slotThreshold = _slotIndex * 2;
-            _currentState = GetStateFromHealth(healthAttr.CurrentValue, slotThreshold);
-            ApplyStaticState(_currentState, _currentState);
+            UI_HealthState realState = GetStateFromHealth(healthAttr.CurrentValue, slotThreshold);
+            _currentState = realState;
+            ApplyStaticState(_currentState);
         }
     }
 

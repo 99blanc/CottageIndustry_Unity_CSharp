@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using LateForDinner.Data;
 using System.Collections.Generic;
 using UnityEngine.U2D;
 
@@ -21,6 +22,7 @@ public class PreloadManager
         await Managers.Resource.LoadPrefabAsync(Literal.Assets.EventSystem);
         await Managers.Resource.LoadPrefabAsync(Literal.Assets.GlobalVolume);
         Log.System(LocalizationKey.Log_Preload_Boot_UI);
+        await Managers.Pool.PrewarmAsync<UISplashDisplay>(1);
         await Managers.Pool.PrewarmAsync<UILockSystem>(1);
         await Managers.Pool.PrewarmAsync<UILoadDisplay>(1);
         await Managers.Pool.PrewarmAsync<UIToastSlot>(Define.Toast.Count);
@@ -36,25 +38,27 @@ public class PreloadManager
         Log.System(LocalizationKey.Log_Preload_BootFinished);
     }
 
-    public async UniTask Release_GameAsync(int dayCount = 1)
+    public async UniTask Release_GameAsync(SaveData data)
     {
+        int dayCount = (data != null) ? data.Day : 1;
+
         if (_initializedGames.TryGetValue(dayCount, out bool isInit) && isInit)
             return;
 
         switch (dayCount)
         {
             case 1:
-                await Release_Game1Async();
+                await Release_Game1Async(data);
                 break;
             default:
-                await Release_Game1Async();
+                await Release_Game1Async(data);
                 break;
         }
 
         _initializedGames[dayCount] = true;
     }
 
-    public async UniTask Release_Game1Async()
+    public async UniTask Release_Game1Async(SaveData data)
     {
         Log.System(LocalizationKey.Log_Preload_BootStarted);
         Log.System(LocalizationKey.Log_Preload_Boot_Data);
@@ -65,16 +69,25 @@ public class PreloadManager
         await Managers.Resource.LoadAnimatorControllerAsync<UIDashCountSlot>();
         await Managers.Resource.LoadAnimatorControllerAsync<UIRemainHealthSlot>();
         Log.System(LocalizationKey.Log_Preload_Boot_Object);
+        await PrewarmCharacterAsync(data.SelectedPlayerID, 1);
         Log.System(LocalizationKey.Log_Preload_Boot_UI);
         Managers.Pool.DestroyByKey<UISplashDisplay>();
         await Managers.Pool.PrewarmAsync<UIQuickSlot>(Define.Amount.MaxQuickSlot);
         await Managers.Pool.PrewarmAsync<UIDashCountSlot>(Define.Amount.MaxDashCount);
         await Managers.Pool.PrewarmAsync<UIRemainHealthSlot>(Define.Amount.MaxHealthCount);
-        await Managers.Pool.PrewarmAsync<UIQuickSlot>(Define.Amount.MaxQuickSlot);
         await Managers.Pool.PrewarmAsync<UIInventorySlot>(Define.Amount.MaxInventorySlot + Define.Amount.MaxEquipmentSlot);
         await Managers.Pool.PrewarmAsync<UIHeadUpDisplay>(1);
         await Managers.Pool.PrewarmAsync<UIGhostImagePopup>(1);
         await Managers.Pool.PrewarmAsync<UIQuestInventoryPopup>(1);
         Log.System(LocalizationKey.Log_Preload_BootFinished);
+    }
+
+    private async UniTask PrewarmCharacterAsync(CharacterID characterID, int count)
+    {
+        if (Managers.Data.Characters.TryGetValue((int)characterID, out var characterData) && !string.IsNullOrEmpty(characterData.AddressableKey))
+        {
+            await Managers.Resource.LoadAnimatorOverrideControllerAsync(characterID.GetAnimatorOverrideControllerPath());
+            await Managers.Pool.PrewarmAsync(characterData.AddressableKey, count);
+        }
     }
 }

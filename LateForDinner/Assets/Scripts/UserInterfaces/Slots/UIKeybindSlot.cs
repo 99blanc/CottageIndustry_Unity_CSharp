@@ -53,6 +53,11 @@ public class UIKeybindSlot : UISlot
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
         GetImage(Images.ResetButtonImage).BindState(_resetButtonState, Define.Atlas.Common, this);
         GetButton(Buttons.KeybindButton).BindView(OnClickKeybind, ViewEvent.LeftClick, this, _resetButtonState);
         GetButton(Buttons.ResetButton).BindViewAsButton(OnClickReset, ViewEvent.LeftClick, this, _resetButtonState);

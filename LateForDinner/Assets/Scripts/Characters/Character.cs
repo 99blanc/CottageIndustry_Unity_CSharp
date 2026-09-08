@@ -1,5 +1,5 @@
-using Cysharp.Threading.Tasks;
 using R3;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -22,6 +22,7 @@ public abstract class Character : MonoBehaviour, IPoolable
             .FirstOrDefault();
         }
     }
+    public IDisposable RentHandle { get; set; }
     public InteractionType CurrentHoldInteractionType { get; set; } = InteractionType.None;
     public AttributeRegistry Attributes { get; protected set; } = new AttributeRegistry();
     public SpriteRenderer Renderer { get; private set; }
@@ -30,21 +31,21 @@ public abstract class Character : MonoBehaviour, IPoolable
     public Collider2D Collider { get; protected set; }
     public StateMachine<CharacterStateType> StateMachine;
     public abstract CharacterAnimator CharacterAnimator { get; }
-    protected abstract CharacterID CharacterID { get; }
+    public abstract CharacterID CharacterID { get; }
 
-    public virtual async UniTask InitAsync()
+    public virtual void OnInit()
     {
         CacheComponents();
         CharacterAnimator.SetOwner(this);
         CharacterAnimator.SetAnimator(Animator);
-        await GetAnimatorControllerAsync();
+        InitAnimatorController();
         InitStateMachine();
     }
 
-    private async UniTask GetAnimatorControllerAsync()
+    private void InitAnimatorController()
     {
         string overrideControllerPath = CharacterID.GetAnimatorOverrideControllerPath();
-        AnimatorOverrideController overrideController = await Managers.Resource.LoadAnimatorOverrideControllerAsync(overrideControllerPath);
+        AnimatorOverrideController overrideController = Managers.Resource.GetAnimatorOverrideController(overrideControllerPath);
 
         if (overrideController != null && CharacterAnimator != null)
             CharacterAnimator.SetOverrideController(overrideController);
@@ -57,16 +58,20 @@ public abstract class Character : MonoBehaviour, IPoolable
         RegisterTransitions(StateMachine);
         StateMachine.SetStartState(CharacterStateType.Idle);
         StateMachine.Init();
+    }
+
+    public virtual void OnGet() 
+    {
         Observable.EveryUpdate(UnityFrameProvider.FixedUpdate)
-        .Where(_  => this != null)
-        .Subscribe(_ => 
+        .Where(_ => this != null)
+        .Subscribe(_ =>
         {
             StateMachine.OnLogic();
             this.IsGrounded();
         }).RegisterToPool(this);
+        Rigidbody.linearVelocity = Vector2.zero;
+        Rigidbody.angularVelocity = 0f;
     }
-
-    public virtual void OnGet() { }
 
     public virtual void OnRelease() { }
 

@@ -40,8 +40,14 @@ public class UISaveDetailPopup : UIPopup, IFocusablePopup
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
         BindButtonStates();
         BindButtonActions();
+        Refresh();
     }
 
     public override void Refresh()
@@ -75,6 +81,9 @@ public class UISaveDetailPopup : UIPopup, IFocusablePopup
 
     public void Setup(int slotIndex)
     {
+        if (_selectedSlotIndex.HasValue && _selectedSlotIndex.Value != slotIndex)
+            Managers.Notify.ClosePopup(this);
+
         _selectedSlotIndex = slotIndex;
         SlotMeta meta = Managers.Save.MetaData.Slots[slotIndex];
         bool isAutoSlot = (slotIndex == 0);

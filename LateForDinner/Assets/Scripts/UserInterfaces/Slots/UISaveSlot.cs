@@ -39,18 +39,18 @@ public class UISaveSlot : UISlot
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
-        GetImage(Images.SlotImage).BindState(_button, Define.Atlas.Common, this);
-        GetImage(Images.UpButtonImage).BindStateAsArrow(_upButton, Define.Atlas.Common, this);
-        GetImage(Images.DownButtonImage).BindStateAsArrow(_downButton, Define.Atlas.Common, this);
-        GetButton(Buttons.SlotButton).BindViewAsToggle(data => OnClickSlot(data), ViewEvent.LeftClick, this, _button);
-        GetButton(Buttons.UpButton).BindViewAsButton(data => OnClickUp(data).Forget(), ViewEvent.LeftClick, this, _upButton);
-        GetButton(Buttons.DownButton).BindViewAsButton(data => OnClickDown(data).Forget(), ViewEvent.LeftClick, this, _downButton);
     }
 
     public override void OnGet()
     {
         base.OnGet();
         SetSelected(false);
+        GetImage(Images.SlotImage).BindState(_button, Define.Atlas.Common, this);
+        GetImage(Images.UpButtonImage).BindStateAsArrow(_upButton, Define.Atlas.Common, this);
+        GetImage(Images.DownButtonImage).BindStateAsArrow(_downButton, Define.Atlas.Common, this);
+        GetButton(Buttons.SlotButton).BindViewAsToggle(data => OnClickSlot(data), ViewEvent.LeftClick, this, _button);
+        GetButton(Buttons.UpButton).BindViewAsButton(data => OnClickUp(data).Forget(), ViewEvent.LeftClick, this, _upButton);
+        GetButton(Buttons.DownButton).BindViewAsButton(data => OnClickDown(data).Forget(), ViewEvent.LeftClick, this, _downButton);
     }
 
     public override void Refresh()

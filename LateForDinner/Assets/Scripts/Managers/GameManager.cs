@@ -4,7 +4,9 @@ using UnityEngine;
 
 public class GameManager
 {
-    public PlayableCharacter Player { get; private set; }
+    private PlayableCharacter _player;
+    public PlayableCharacter Player 
+        => _player;
 
     public async UniTask OldgameAsync(int slotIndex)
     {
@@ -16,11 +18,10 @@ public class GameManager
             await Managers.Save.LoadAsync(slotIndex);
             var data = Managers.Save.CurrentData;
             Managers.Inventory.InitInventory(data.TotalSlots, data.EquipmentTabSlots, data.ConsumptionTabSlots, data.EtcTabSlots, data.EquipmentSlots, data.QuickSlots);
-            await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
-            await PrepareAndSpawnPlayerAsync(forceTransition: true);
-            await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
-            int day = (data != null) ? data.Day : 1;
-            await Managers.Preload.Release_GameAsync(day);
+            await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
+            await Managers.Preload.Release_GameAsync(data);
+            await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
+            await PrepareAndSpawnPlayerAsync(false, forceTransition: true);
             await load.LoadAsync(1.0f, LocalizationKey.Log_Game_Loading_SaveData);
         })).Load();
 
@@ -38,11 +39,10 @@ public class GameManager
             var data = Managers.Save.CurrentData;
             Managers.Inventory.InitInventory(data.TotalSlots, data.EquipmentTabSlots, data.ConsumptionTabSlots, data.EtcTabSlots, data.EquipmentSlots, data.QuickSlots);
             await Managers.Save.SaveAsync();
-            await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
-            await PrepareAndSpawnPlayerAsync();
-            await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
-            int day = (data != null) ? data.Day : 1;
-            await Managers.Preload.Release_GameAsync(day);
+            await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
+            await Managers.Preload.Release_GameAsync(data);
+            await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
+            await PrepareAndSpawnPlayerAsync(true);
             await load.LoadAsync(1.0f, LocalizationKey.Log_Game_Loading_NewData);
         })).Load();
 
@@ -63,33 +63,35 @@ public class GameManager
             var data = Managers.Save.CurrentData;
             Managers.Inventory.InitInventory(data.TotalSlots, data.EquipmentTabSlots, data.ConsumptionTabSlots, data.EtcTabSlots, data.EquipmentSlots, data.QuickSlots);
             Managers.Save.CurrentData.CurrentSceneID = targetSceneID;
-            await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
-            await PrepareAndSpawnPlayerAsync(forceTransition: true);
-            await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
-            int day = (data != null) ? data.Day : 1;
-            await Managers.Preload.Release_GameAsync(day);
+            await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
+            await Managers.Preload.Release_GameAsync(data);
+            await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
+            await PrepareAndSpawnPlayerAsync(true, forceTransition: true);
             await load.LoadAsync(1.0f, LocalizationKey.Log_Game_Loading_DebugData);
         })).Load();
 
         Managers.UI.OpenDisplay<UIHeadUpDisplay>();
     }
 
-    private async UniTask PrepareAndSpawnPlayerAsync(bool forceTransition = false)
+    private async UniTask PrepareAndSpawnPlayerAsync(bool isNewGame = false, bool forceTransition = false)
     {
-        var saveData = Managers.Save.CurrentData;
-        await Managers.Scene.LoadSceneAsync(saveData.CurrentSceneID, forceTransition);
-        await SpawnPlayerAsync(saveData.SelectedPlayerID);
-        Managers.Scene.RelocateCharacterToSpawnpoint();
+        var data = Managers.Save.CurrentData;
+        await Managers.Scene.LoadSceneAsync(data.CurrentSceneID, forceTransition);
+        await SpawnPlayerAsync(data.SelectedPlayerID);
+
+        if (isNewGame)
+            Managers.Scene.RelocateCharacterToSpawnpoint();
     }
 
     public async UniTask<T> SpawnPlayerAsync<T>(CharacterID characterID) where T : PlayableCharacter
     {
-        DespawnExistingPlayer();
-        var character = await SpawnCharacterAsync<T>(characterID, Vector3.zero);
+        var data = Managers.Save.CurrentData;
+        DespawnCharacter(ref _player);
+        var character = await SpawnCharacterAsync<T>(characterID, data.PlayerFlipX, data.PlayerPosition, data.PlayerRotation);
 
         if (character != null)
         {
-            Player = character;
+            _player = character;
             UnityEngine.Object.DontDestroyOnLoad(character.gameObject);
             Managers.Camera.SetTarget(Player);
         }
@@ -100,56 +102,57 @@ public class GameManager
     public async UniTask<PlayableCharacter> SpawnPlayerAsync(CharacterID characterID)
         => await SpawnPlayerAsync<PlayableCharacter>(characterID);
 
-    public async UniTask<T> SpawnCharacterAsync<T>(CharacterID characterID, Vector3 position, Quaternion rotation = default) where T : Character
+    public async UniTask<T> SpawnCharacterAsync<T>(CharacterID characterID, bool flipX, Vector3 position, float rotation = default) where T : Character
     {
-        GameObject characterPrefab = await CreateCharacterPrefabAsync(characterID);
+        var (characterPrefab, rentHandle) = await CreateCharacterPrefabAsync(characterID);
 
         if (characterPrefab == null)
             return default;
 
         characterPrefab.transform.position = position;
-        characterPrefab.transform.rotation = rotation == default ? Quaternion.identity : rotation;
+        characterPrefab.transform.rotation = Quaternion.Euler(0f, 0f, rotation);
         var characterComponent = characterPrefab.GetComponentAssert<Character>();
+        characterComponent.RentHandle = rentHandle;
+        characterComponent.Renderer.flipX = flipX;
 
         if (characterComponent is not T typedCharacter)
         {
             Log.Error(LocalizationKey.Log_Game_CharacterSpawnFailed, characterID.ToString());
-            Managers.Pool.Destroy(characterPrefab);
+            rentHandle?.Dispose();
             return default;
         }
 
-        await typedCharacter.InitAsync();
         Log.System(LocalizationKey.Log_Game_CharacterSpawnSuccess, characterID.ToString());
         return typedCharacter;
     }
 
-    private async UniTask<GameObject> CreateCharacterPrefabAsync(CharacterID characterID)
+    private async UniTask<(GameObject prefab, IDisposable rentHandle)> CreateCharacterPrefabAsync(CharacterID characterID)
     {
         if (!Managers.Data.Characters.TryGetValue((int)characterID, out var characterData) || string.IsNullOrEmpty(characterData.AddressableKey))
         {
             Log.Error(LocalizationKey.Log_Game_CharacterSpawnFailed, characterID.ToString());
-            return null;
+            return (null, null);
         }
 
-        GameObject prefab = await Managers.Resource.InstantiateAsync(characterData.AddressableKey);
+        var (prefab, rentHandle) = await Managers.Pool.PopAsync(characterData.AddressableKey);
 
         if (prefab == null)
         {
             Log.Error(LocalizationKey.Log_Game_CharacterSpawnFailed, characterID.ToString());
-            return null;
+            return (null, null);
         }
 
         prefab.name = characterID.ToString();
-        return prefab;
+        return (prefab, rentHandle);
     }
 
-    private void DespawnExistingPlayer()
+    private void DespawnCharacter<T>(ref T character) where T : Character
     {
-        if (IsCharacterNull())
+        if (character == null)
             return;
 
-        Managers.Pool.Destroy(Player.gameObject);
-        Player = null;
+        character.RentHandle?.Dispose();
+        character = null;
     }
 
     public async UniTask TitleGameAsync()
@@ -162,15 +165,12 @@ public class GameManager
         await ((Func<UILoadDisplay, UniTask>)(async load =>
         {
             await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_Title);
-            DespawnExistingPlayer();
+            DespawnCharacter(ref _player);
             await Managers.Scene.LoadSceneAsync(SceneID.Bootstrap, forceTransition: true);
             await load.LoadAsync(1.0f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
         })).Load();
         Managers.UI.OpenDisplay<UITitleDisplay>();
     }
-
-    private bool IsCharacterNull()
-        => Player == null;
 
     public void Pause()
         => Time.timeScale = 0f;

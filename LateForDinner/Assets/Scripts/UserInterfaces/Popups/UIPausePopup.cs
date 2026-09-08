@@ -36,8 +36,16 @@ public class UIPausePopup : UIPopup
         BindImage(typeof(Images));
         BindText(typeof(Texts));
         BindButton(typeof(Buttons));
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
         BindButtonStates();
         BindButtonActions();
+        Managers.Control.DisableActionMap(Literal.Maps.User);
+        Managers.Game.Pause();
+        Refresh();
     }
 
     public override void Refresh()
@@ -65,14 +73,6 @@ public class UIPausePopup : UIPopup
         SetText(Texts.ContinueButtonText, LocalizationKey.UI_Pause_Popup_Text_Continue);
         SetText(Texts.OptionButtonText, LocalizationKey.UI_Pause_Popup_Text_Option);
         SetText(Texts.TitleButtonText, LocalizationKey.UI_Pause_Popup_Text_Title);
-    }
-
-    public override void OnGet()
-    {
-        base.OnGet();
-        Refresh();
-        Managers.Control.DisableActionMap(Literal.Maps.User);
-        Managers.Game.Pause();
     }
 
     public override void OnRelease()

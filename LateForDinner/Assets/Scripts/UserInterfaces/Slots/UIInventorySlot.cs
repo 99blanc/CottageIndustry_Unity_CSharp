@@ -47,12 +47,12 @@ public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
         GetImage(Images.SlotItemImage).raycastTarget = false;
         GetImage(Images.SlotCooldownImage).raycastTarget = false;
         GetText(Texts.SlotQuantityText).raycastTarget = false;
-        GetButton(Buttons.SlotButton).BindView(OnClickSlot, ViewEvent.RightClick, this);
     }
 
     public override void OnGet()
     {
         base.OnGet();
+        GetButton(Buttons.SlotButton).BindView(OnClickSlot, ViewEvent.RightClick, this);
         Refresh();
     }
 

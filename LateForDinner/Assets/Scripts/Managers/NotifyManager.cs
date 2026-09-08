@@ -1,10 +1,12 @@
 using Cysharp.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
 public class NotifyManager
 {
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
+    private readonly Dictionary<UserInterface, UserInterface> _processingPopups = new Dictionary<UserInterface, UserInterface>();
 
     public async UniTask LockAsync(Func<UniTask> task)
     {
@@ -91,25 +93,45 @@ public class NotifyManager
 
     private async UniTask AlertInternalAsync(UserInterface owner, LocalizationKey titleKey, LocalizationKey messageKey, params object[] messageArgs)
     {
-        var popup = await OpenAlertPopupAsync();
+        if (owner != null)
+        {
+            if (_processingPopups.ContainsKey(owner))
+                return;
 
-        if (IsPopupNull(popup))
-            return;
-
-        bool isClosed = false;
-        popup.Setup(titleKey, messageKey, () => { isClosed = true; }, messageArgs);
+            _processingPopups[owner] = null;
+        }
 
         try
         {
-            await UniTask.WaitUntil(() => isClosed || owner.IsPooled());
-        }
-        catch (OperationCanceledException)
-        {
-            Log.System(LocalizationKey.Log_Feedback_AlertPopup_Cancelled);
-        }
+            var popup = await OpenAlertPopupAsync();
 
-        if (IsPopupNotPooled(popup))
-            Managers.UI.Close(popup);
+            if (IsPopupNull(popup))
+                return;
+
+            if (owner != null)
+                _processingPopups[owner] = popup;
+
+            bool isClosed = false;
+            popup.OnGet();
+            popup.Setup(titleKey, messageKey, () => { isClosed = true; }, messageArgs);
+
+            try
+            {
+                await UniTask.WaitUntil(() => isClosed || owner.IsPooled());
+            }
+            catch (OperationCanceledException)
+            {
+                Log.System(LocalizationKey.Log_Feedback_AlertPopup_Cancelled);
+            }
+
+            if (IsPopupNotPooled(popup))
+                Managers.UI.Close(popup);
+        }
+        finally
+        {
+            if (owner != null)
+                _processingPopups.Remove(owner);
+        }
     }
 
     public async UniTask AlertAsync(UserInterface owner, LocalizationKey titleKey, LocalizationKey messageKey)
@@ -129,28 +151,48 @@ public class NotifyManager
 
     private async UniTask<bool> ConfirmInternalAsync(UserInterface owner, LocalizationKey titleKey, LocalizationKey messageKey, params object[] messageArgs)
     {
-        var popup = await OpenConfirmPopupAsync();
+        if (owner != null)
+        {
+            if (_processingPopups.ContainsKey(owner))
+                return false;
 
-        if (IsPopupNull(popup))
-            return false;
-
-        bool result = false;
-        bool isClosed = false;
-        popup.Setup(titleKey, messageKey, onConfirm: () => { result = true; isClosed = true; }, onCancel: () => { result = false; isClosed = true; }, messageArgs);
+            _processingPopups[owner] = null;
+        }
 
         try
         {
-            await UniTask.WaitUntil(() => isClosed || owner.IsPooled());
+            var popup = await OpenConfirmPopupAsync();
+
+            if (IsPopupNull(popup))
+                return false;
+
+            if (owner != null)
+                _processingPopups[owner] = popup;
+
+            bool result = false;
+            bool isClosed = false;
+            popup.OnGet();
+            popup.Setup(titleKey, messageKey, onConfirm: () => { result = true; isClosed = true; }, onCancel: () => { result = false; isClosed = true; }, messageArgs);
+
+            try
+            {
+                await UniTask.WaitUntil(() => isClosed || owner.IsPooled());
+            }
+            catch (OperationCanceledException)
+            {
+                Log.System(LocalizationKey.Log_Feedback_ConfirmPopup_Cancelled);
+            }
+
+            if (IsPopupNotPooled(popup))
+                Managers.UI.Close(popup);
+
+            return result;
         }
-        catch (OperationCanceledException)
+        finally
         {
-            Log.System(LocalizationKey.Log_Feedback_ConfirmPopup_Cancelled);
+            if (owner != null)
+                _processingPopups.Remove(owner);
         }
-
-        if (IsPopupNotPooled(popup))
-            Managers.UI.Close(popup);
-
-        return result;
     }
 
     public async UniTask<bool> ConfirmAsync(UserInterface owner, LocalizationKey titleKey, LocalizationKey messageKey)
@@ -173,4 +215,18 @@ public class NotifyManager
 
     private bool IsPopupNotPooled(UserInterface popup)
         => !popup.IsPooled();
+
+    public void ClosePopup(UserInterface owner)
+    {
+        if (owner == null)
+            return;
+
+        if (_processingPopups.TryGetValue(owner, out var popup))
+        {
+            if (popup != null && IsPopupNotPooled(popup))
+                Managers.UI.Close(popup);
+
+            _processingPopups.Remove(owner);
+        }
+    }
 }

@@ -1,9 +1,7 @@
-using UnityHFSM;
-
 public class Protagonist : PlayableCharacter
 {
     public override CharacterAnimator CharacterAnimator => _protagonistAnimator;
-    protected override CharacterID CharacterID => CharacterID.Protagonist;
+    public override CharacterID CharacterID => CharacterID.Protagonist;
     private ProtagonistAnimator _protagonistAnimator;
 
     protected override void CacheComponents()

@@ -77,8 +77,8 @@ public enum LocalizationKey
     Console_Time_Current                               , // 현재 타임 스케일: {0}
     Console_Variable_Header                            , // --- 사용 가능한 능력치 목록 ---
     Console_Set_Usage                                  , // 사용법: set [이름] [값] [base/-b (선택)] (예: set hp 200 base)
-    Console_Set_Success                                , // 능력치 설정 완료 [{0}]: 현재치({1}) / 최대치({1})
-    Console_SetBase_Success                            , // [0] 능력치 최대치(Base) 및 현재값 설정 완료: {1}
+    Console_Set_Success                                , // 능력치 설정 완료 [{0}]: 현재치({1})
+    Console_SetBase_Success                            , // 능력치 설정 완료 [{0}]: 현재치({1}) / 최대치({1})
     Console_Get_Usage                                  , // 사용법: get [이름]
     Console_Get_Success                                , // [{0}] 현재치: {1} / 최대치: {2}
     Console_Get_NotFound                               , // {0}' 변수를 찾을 수 없습니다.

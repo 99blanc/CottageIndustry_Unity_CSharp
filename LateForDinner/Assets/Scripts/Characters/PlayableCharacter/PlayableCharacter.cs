@@ -1,6 +1,4 @@
-using Cysharp.Threading.Tasks;
 using System;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityHFSM;
 
@@ -11,15 +9,17 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
     public Transform FrontTransform { get; private set; }
     public Transform HitboxTransform { get; private set; }
 
-    public override async UniTask InitAsync()
+    public override void OnGet()
     {
-        await base.InitAsync();
+        base.OnGet();
+        RegisterInputSubscriptions();
         var data = Managers.Save.CurrentData;
         Attributes.ImportSaveData(data.SavedAttributes);
-        Rigidbody.position = data.PlayerPosition;
+        Vector2 position = data.PlayerPosition;
+        transform.position = position;
+        Rigidbody.position = position;
         Rigidbody.rotation = data.PlayerRotation;
         Renderer.flipX = data.PlayerFlipX;
-        RegisterInputSubscriptions();
     }
 
     private void RegisterInputSubscriptions()

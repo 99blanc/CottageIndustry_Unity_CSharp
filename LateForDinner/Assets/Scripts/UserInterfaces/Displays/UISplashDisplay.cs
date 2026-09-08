@@ -17,13 +17,13 @@ public class UISplashDisplay : UIDisplay, IAnimatableUI
         base.OnInit();
         BindImage(typeof(Images));
         Revert();
-        this.BindKey(Literal.Hotkeys.Any, InputEventType.Triggered, () => CancelToken("SplashTask")).RegisterToPool(this);
     }
 
     public override void OnGet()
     {
         base.OnGet();
         Revert();
+        this.BindKey(Literal.Hotkeys.Any, InputEventType.Triggered, () => CancelToken("SplashTask")).RegisterToPool(this);
     }
 
     private void Revert()

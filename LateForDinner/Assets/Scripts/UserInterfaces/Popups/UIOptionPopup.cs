@@ -204,12 +204,27 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
         BindScrollbar(typeof(Scrollbars));
         BindDropdown(typeof(Dropdowns));
         BindPanel(typeof(Panels));
+        Switch(UI_OptionState.Sound);
+    }
+
+    public override void OnGet()
+    {
+        base.OnGet();
         BindButtonStates();
         BindButtonActions();
-        Switch(UI_OptionState.Sound);
-        InitSoundPanel();
-        InitGraphicPanel();
-        InitAccessPanel();
+        BindSoundPanel();
+        BindGraphicPanel();
+        BindAccessPanel();
+        _initialModifierDash = Managers.Config.Option.Access.modifierDash;
+        _initialLanguage = Managers.Config.Option.Access.language;
+        _initialKeybindJson = Managers.Config.Option.Access.keybind;
+
+        if (!string.IsNullOrEmpty(_initialKeybindJson))
+            Managers.Control.LoadBindingFromJson(_initialKeybindJson);
+
+        _initialBindingSnapshot = Managers.Control.CreateBindingSnapshot();
+        Switch(_state);
+        Refresh();
     }
 
     private void BindButtonStates()
@@ -234,18 +249,7 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
         GetButton(Buttons.DefaultButton).BindViewAsButton(async data => await OnClickDefault(data), ViewEvent.LeftClick, this, _defaultButton);
     }
 
-    private void InitStaticTexts()
-    {
-        SetText(Texts.SoundButtonText, LocalizationKey.UI_Option_Popup_Text_Sound);
-        SetText(Texts.GraphicButtonText, LocalizationKey.UI_Option_Popup_Text_Graphic);
-        SetText(Texts.AccessButtonText, LocalizationKey.UI_Option_Popup_Text_Access);
-        SetText(Texts.ApplyButtonText, LocalizationKey.Apply);
-        SetText(Texts.CompleteButtonText, LocalizationKey.Complete);
-        SetText(Texts.CancelButtonText, LocalizationKey.Cancel);
-        SetText(Texts.DefaultButtonText, LocalizationKey.Default);
-    }
-
-    private void InitSoundPanel()
+    private void BindSoundPanel()
     {
         BindToggleAction(Toggles.MasterToggle, Images.MasterCheckmarkImage, Images.MasterInputImage, Images.MasterToggleImage, Scrollbars.MasterScrollbar);
         BindToggleAction(Toggles.BGMToggle, Images.BGMCheckmarkImage, Images.BGMInputImage, Images.BGMToggleImage, Scrollbars.BGMScrollbar);
@@ -263,12 +267,84 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
         BindVolumeControl(Scrollbars.AmbientScrollbar, InputFields.AmbientInputField);
         BindVolumeControl(Scrollbars.SFXScrollbar, InputFields.SFXInputField);
         BindVolumeControl(Scrollbars.UIScrollbar, InputFields.UIInputField);
-        SetText(Texts.MasterText, LocalizationKey.UI_Option_Popup_Text_Master);
-        SetText(Texts.BGMText, LocalizationKey.UI_Option_Popup_Text_BGM);
-        SetText(Texts.AmbientText, LocalizationKey.UI_Option_Popup_Text_Ambient);
-        SetText(Texts.SFXText, LocalizationKey.UI_Option_Popup_Text_SFX);
-        SetText(Texts.UIText, LocalizationKey.UI_Option_Popup_Text_UI);
-        SetText(Texts.MuteText, LocalizationKey.UI_Option_Popup_Text_Mute);
+    }
+
+    private void BindGraphicPanel()
+    {
+        GetImage(Images.ResolutionArrowImage).BindStateAsArrow(_resolutionArrowButton, Define.Atlas.Common, this);
+        GetImage(Images.FullscreenArrowImage).BindStateAsArrow(_fullscreenArrowButton, Define.Atlas.Common, this);
+        GetImage(Images.QualityArrowImage).BindStateAsArrow(_qualityArrowButton, Define.Atlas.Common, this);
+        BindArrowDropdownButton(Buttons.ResolutionButton, _resolutionArrowButton);
+        BindArrowDropdownButton(Buttons.FullscreenButton, _fullscreenArrowButton);
+        BindArrowDropdownButton(Buttons.QualityButton, _qualityArrowButton);
+        BindGraphicToggle(Toggles.VsyncToggle, Images.VsyncCheckmarkImage, Images.VsyncToggleImage);
+        BindGraphicToggle(Toggles.AntialiasingToggle, Images.AntialiasingCheckmarkImage, Images.AntialiasingToggleImage);
+        BindGraphicToggle(Toggles.BloomToggle, Images.BloomCheckmarkImage, Images.BloomToggleImage);
+        BindGraphicToggle(Toggles.VignetteToggle, Images.VignetteCheckmarkImage, Images.VignetteToggleImage);
+        BindGraphicToggle(Toggles.MotionBlurToggle, Images.MotionBlurCheckmarkImage, Images.MotionBlurToggleImage);
+        BindGraphicToggle(Toggles.ContrastToggle, Images.ContrastCheckmarkImage, Images.ContrastToggleImage);
+    }
+
+    private void BindAccessPanel()
+    {
+        GetImage(Images.LanguageArrowImage).BindStateAsArrow(_languageArrowButton, Define.Atlas.Common, this);
+        BindArrowDropdownButton(Buttons.LanguageButton, _languageArrowButton);
+    }
+
+    private void BindVolumeControl(Scrollbars scrollbarEnum, InputFields inputFieldEnum)
+    {
+        var scrollbar = GetScrollbar(scrollbarEnum);
+        var inputField = GetInputField(inputFieldEnum);
+
+        if (scrollbar == null || inputField == null)
+            return;
+
+        scrollbar.BindScrollbar(val =>
+        {
+            if (_isUpdatingVolume)
+                return;
+
+            if (inputField.isFocused)
+                inputField.DeactivateInputField();
+
+            _isUpdatingVolume = true;
+            inputField.text = Mathf.RoundToInt(val * 100f).ToString();
+            _isUpdatingVolume = false;
+        }, this);
+        inputField.BindInputField(text =>
+        {
+            if (_isUpdatingVolume || string.IsNullOrEmpty(text))
+                return;
+
+            if (!int.TryParse(text, out int percent))
+                return;
+
+            int clampedPercent = Mathf.Clamp(percent, 0, 100);
+
+            if (percent != clampedPercent)
+            {
+                _isUpdatingVolume = true;
+                inputField.text = clampedPercent.ToString();
+                inputField.MoveTextEnd(false);
+                _isUpdatingVolume = false;
+            }
+
+            _isUpdatingVolume = true;
+            scrollbar.value = clampedPercent / 100f;
+            _isUpdatingVolume = false;
+        }, this);
+        inputField.BindInputEndEdit(text =>
+        {
+            if (_isUpdatingVolume)
+                return;
+
+            int percent = string.IsNullOrEmpty(text) || !int.TryParse(text, out int parsedValue) ? 0 : parsedValue;
+            percent = Mathf.Clamp(percent, 0, 100);
+            _isUpdatingVolume = true;
+            inputField.text = percent.ToString();
+            scrollbar.value = percent / 100f;
+            _isUpdatingVolume = false;
+        }, this);
     }
 
     private void BindToggleAction(Toggles toggleEnum, Images checkmarkEnum, Images inputImageEnum, Images toggleImageEnum, Scrollbars scrollbarEnum)
@@ -281,15 +357,43 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
         }, ViewEvent.LeftClick, this);
     }
 
-    private void InitGraphicPanel()
+    private void BindArrowDropdownButton(Buttons button, ReactiveProperty<ButtonState> state)
+        => GetButton(button).BindViewAsButton(_ => { }, ViewEvent.LeftClick, this, state);
+
+    private void BindGraphicToggle(Toggles toggle, Images checkmark, Images toggleImage)
+    {
+        GetToggle(toggle).BindView(_ =>
+        {
+            bool isOn = GetToggle(toggle).isOn;
+            UpdateCheckmark(GetImage(checkmark), isOn);
+            GetImage(toggleImage).SetVisual(isEnabled: isOn);
+        }, ViewEvent.LeftClick, this);
+    }
+
+    private void SetStaticTexts()
+    {
+        SetText(Texts.SoundButtonText, LocalizationKey.UI_Option_Popup_Text_Sound);
+        SetText(Texts.GraphicButtonText, LocalizationKey.UI_Option_Popup_Text_Graphic);
+        SetText(Texts.AccessButtonText, LocalizationKey.UI_Option_Popup_Text_Access);
+        SetText(Texts.ApplyButtonText, LocalizationKey.Apply);
+        SetText(Texts.CompleteButtonText, LocalizationKey.Complete);
+        SetText(Texts.CancelButtonText, LocalizationKey.Cancel);
+        SetText(Texts.DefaultButtonText, LocalizationKey.Default);
+    }
+
+    private void SetSoundPanelTexts()
+    {
+        SetText(Texts.MasterText, LocalizationKey.UI_Option_Popup_Text_Master);
+        SetText(Texts.BGMText, LocalizationKey.UI_Option_Popup_Text_BGM);
+        SetText(Texts.AmbientText, LocalizationKey.UI_Option_Popup_Text_Ambient);
+        SetText(Texts.SFXText, LocalizationKey.UI_Option_Popup_Text_SFX);
+        SetText(Texts.UIText, LocalizationKey.UI_Option_Popup_Text_UI);
+        SetText(Texts.MuteText, LocalizationKey.UI_Option_Popup_Text_Mute);
+    }
+
+    private void SetGraphicPanelTexts()
     {
         InitResolution();
-        GetImage(Images.ResolutionArrowImage).BindStateAsArrow(_resolutionArrowButton, Define.Atlas.Common, this);
-        GetImage(Images.FullscreenArrowImage).BindStateAsArrow(_fullscreenArrowButton, Define.Atlas.Common, this);
-        GetImage(Images.QualityArrowImage).BindStateAsArrow(_qualityArrowButton, Define.Atlas.Common, this);
-        BindArrowDropdownButton(Buttons.ResolutionButton, _resolutionArrowButton);
-        BindArrowDropdownButton(Buttons.FullscreenButton, _fullscreenArrowButton);
-        BindArrowDropdownButton(Buttons.QualityButton, _qualityArrowButton);
         InitDropdownOptions(Dropdowns.FullscreenDropdown, new[]
         {
             LocalizationKey.UI_Option_Popup_Text_Fullscreen_Windowed,
@@ -302,12 +406,6 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
             LocalizationKey.UI_Option_Popup_Text_Quality_Medium,
             LocalizationKey.UI_Option_Popup_Text_Quality_High
         });
-        BindGraphicToggle(Toggles.VsyncToggle, Images.VsyncCheckmarkImage, Images.VsyncToggleImage);
-        BindGraphicToggle(Toggles.AntialiasingToggle, Images.AntialiasingCheckmarkImage, Images.AntialiasingToggleImage);
-        BindGraphicToggle(Toggles.BloomToggle, Images.BloomCheckmarkImage, Images.BloomToggleImage);
-        BindGraphicToggle(Toggles.VignetteToggle, Images.VignetteCheckmarkImage, Images.VignetteToggleImage);
-        BindGraphicToggle(Toggles.MotionBlurToggle, Images.MotionBlurCheckmarkImage, Images.MotionBlurToggleImage);
-        BindGraphicToggle(Toggles.ContrastToggle, Images.ContrastCheckmarkImage, Images.ContrastToggleImage);
         SetText(Texts.ResolutionText, LocalizationKey.UI_Option_Popup_Text_Resolution);
         SetText(Texts.FullscreenText, LocalizationKey.UI_Option_Popup_Text_Fullscreen_Windowed);
         SetText(Texts.QualityText, LocalizationKey.UI_Option_Popup_Text_Quality);
@@ -319,9 +417,6 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
         SetText(Texts.ContrastText, LocalizationKey.UI_Option_Popup_Text_Contrast);
     }
 
-    private void BindArrowDropdownButton(Buttons button, ReactiveProperty<ButtonState> state) =>
-        GetButton(button).BindViewAsButton(_ => { }, ViewEvent.LeftClick, this, state);
-
     private void InitDropdownOptions(Dropdowns dropdown, LocalizationKey[] keys)
     {
         var dd = GetDropdown(dropdown);
@@ -330,20 +425,8 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
         dd.AddOptions(options);
     }
 
-    private void BindGraphicToggle(Toggles toggle, Images checkmark, Images toggleImage)
+    private void SetAccessPanelTexts()
     {
-        GetToggle(toggle).BindView(_ =>
-        {
-            bool isOn = GetToggle(toggle).isOn;
-            UpdateCheckmark(GetImage(checkmark), isOn);
-            GetImage(toggleImage).SetVisual(isEnabled: isOn);
-        }, ViewEvent.LeftClick, this);
-    }
-
-    private void InitAccessPanel()
-    {
-        GetImage(Images.LanguageArrowImage).BindStateAsArrow(_languageArrowButton, Define.Atlas.Common, this);
-        BindArrowDropdownButton(Buttons.LanguageButton, _languageArrowButton);
         var languageDropdown = GetDropdown(Dropdowns.LanguageDropdown);
 
         if (languageDropdown != null)
@@ -384,25 +467,13 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
         resolutionDropdown.AddOptions(resolutionOptions);
     }
 
-    public override void OnGet()
-    {
-        base.OnGet();
-        Refresh();
-        _initialModifierDash = Managers.Config.Option.Access.modifierDash;
-        _initialLanguage = Managers.Config.Option.Access.language;
-        _initialKeybindJson = Managers.Config.Option.Access.keybind;
-
-        if (!string.IsNullOrEmpty(_initialKeybindJson))
-            Managers.Control.LoadBindingFromJson(_initialKeybindJson);
-
-        _initialBindingSnapshot = Managers.Control.CreateBindingSnapshot();
-        Switch(UI_OptionState.Sound);
-    }
-
     public override void Refresh()
     {
         base.Refresh();
-        InitStaticTexts();
+        SetStaticTexts();
+        SetSoundPanelTexts();
+        SetGraphicPanelTexts();
+        SetAccessPanelTexts();
         RefreshSoundPanel();
         RefreshGraphicPanel();
         RefreshAccessPanel();
@@ -551,62 +622,6 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
 
         string sprite = isOn ? Define.Sprite.Checkmark_Yes : Define.Sprite.Checkmark_No;
         image.sprite = Managers.Resource.GetSprite(Define.Atlas.Common, sprite);
-    }
-
-    private void BindVolumeControl(Scrollbars scrollbarEnum, InputFields inputFieldEnum)
-    {
-        var scrollbar = GetScrollbar(scrollbarEnum);
-        var inputField = GetInputField(inputFieldEnum);
-
-        if (scrollbar == null || inputField == null)
-            return;
-
-        scrollbar.BindScrollbar(val =>
-        {
-            if (_isUpdatingVolume)
-                return;
-
-            if (inputField.isFocused)
-                inputField.DeactivateInputField();
-
-            _isUpdatingVolume = true;
-            inputField.text = Mathf.RoundToInt(val * 100f).ToString();
-            _isUpdatingVolume = false;
-        }, this);
-        inputField.BindInputField(text =>
-        {
-            if (_isUpdatingVolume || string.IsNullOrEmpty(text))
-                return;
-
-            if (!int.TryParse(text, out int percent))
-                return;
-
-            int clampedPercent = Mathf.Clamp(percent, 0, 100);
-
-            if (percent != clampedPercent)
-            {
-                _isUpdatingVolume = true;
-                inputField.text = clampedPercent.ToString();
-                inputField.MoveTextEnd(false);
-                _isUpdatingVolume = false;
-            }
-
-            _isUpdatingVolume = true;
-            scrollbar.value = clampedPercent / 100f;
-            _isUpdatingVolume = false;
-        }, this);
-        inputField.BindInputEndEdit(text =>
-        {
-            if (_isUpdatingVolume)
-                return;
-
-            int percent = string.IsNullOrEmpty(text) || !int.TryParse(text, out int parsedValue) ? 0 : parsedValue;
-            percent = Mathf.Clamp(percent, 0, 100);
-            _isUpdatingVolume = true;
-            inputField.text = percent.ToString();
-            scrollbar.value = percent / 100f;
-            _isUpdatingVolume = false;
-        }, this);
     }
 
     private void Sync()

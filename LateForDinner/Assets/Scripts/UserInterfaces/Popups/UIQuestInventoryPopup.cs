@@ -86,37 +86,8 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         BindButton(typeof(Buttons));
         BindScrollRect(typeof(ScrollRects));
         BindPanel(typeof(Panels));
-        BindButtonStates();
-        BindButtonActions();
         InitInventorySlots();
         InitEquipmentSlots();
-        Managers.Inventory.OnInventoryChanged
-        .Subscribe(_ => Refresh())
-        .RegisterToPool(this);
-    }
-
-    private void BindButtonStates()
-    {
-        GetImage(Images.AttributeButtonImage).BindState(_attributeButtonState, Define.Atlas.Common, this);
-        GetImage(Images.TotalButtonImage).BindState(_totalButtonState, Define.Atlas.Common, this);
-        GetImage(Images.EquipmentButtonImage).BindState(_equipmentButtonState, Define.Atlas.Common, this);
-        GetImage(Images.ConsumptionButtonImage).BindState(_consumptionButtonState, Define.Atlas.Common, this);
-        GetImage(Images.EtcButtonImage).BindState(_etcButtonState, Define.Atlas.Common, this);
-        GetImage(Images.SortButtonImage).BindState(_sortButtonState, Define.Atlas.Common, this);
-        GetImage(Images.ScrollUpArrowImage).BindStateAsArrow(_scrollUpButtonState, Define.Atlas.Common, this);
-        GetImage(Images.ScrollDownArrowImage).BindStateAsArrow(_scrollDownButtonState, Define.Atlas.Common, this);
-    }
-
-    private void BindButtonActions()
-    {
-        GetButton(Buttons.AttributeButton).BindViewAsButton(OnClickAttributeTab, ViewEvent.LeftClick, this, _attributeButtonState);
-        GetButton(Buttons.TotalButton).BindViewAsButton(OnClickTotalTab, ViewEvent.LeftClick, this, _totalButtonState);
-        GetButton(Buttons.EquipmentButton).BindViewAsButton(OnClickEquipmentTab, ViewEvent.LeftClick, this, _equipmentButtonState);
-        GetButton(Buttons.ConsumptionButton).BindViewAsButton(OnClickConsumptionTab, ViewEvent.LeftClick, this, _consumptionButtonState);
-        GetButton(Buttons.EtcButton).BindViewAsButton(OnClickEtcTab, ViewEvent.LeftClick, this, _etcButtonState);
-        GetButton(Buttons.SortButton).BindViewAsButton(OnClickSortTab, ViewEvent.LeftClick, this, _sortButtonState);
-        GetButton(Buttons.ScrollUpButton).BindViewAsButton(OnClickScrollUp, ViewEvent.LeftClick, this, _scrollUpButtonState);
-        GetButton(Buttons.ScrollDownButton).BindViewAsButton(OnClickScrollDown, ViewEvent.LeftClick, this, _scrollDownButtonState);
     }
 
     private void InitInventorySlots()
@@ -148,7 +119,36 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
     public override void OnGet()
     {
         base.OnGet();
+        BindButtonStates();
+        BindButtonActions();
+        Managers.Inventory.OnInventoryChanged
+        .Subscribe(_ => Refresh())
+        .RegisterToPool(this);
         Refresh();
+    }
+
+    private void BindButtonStates()
+    {
+        GetImage(Images.AttributeButtonImage).BindState(_attributeButtonState, Define.Atlas.Common, this);
+        GetImage(Images.TotalButtonImage).BindState(_totalButtonState, Define.Atlas.Common, this);
+        GetImage(Images.EquipmentButtonImage).BindState(_equipmentButtonState, Define.Atlas.Common, this);
+        GetImage(Images.ConsumptionButtonImage).BindState(_consumptionButtonState, Define.Atlas.Common, this);
+        GetImage(Images.EtcButtonImage).BindState(_etcButtonState, Define.Atlas.Common, this);
+        GetImage(Images.SortButtonImage).BindState(_sortButtonState, Define.Atlas.Common, this);
+        GetImage(Images.ScrollUpArrowImage).BindStateAsArrow(_scrollUpButtonState, Define.Atlas.Common, this);
+        GetImage(Images.ScrollDownArrowImage).BindStateAsArrow(_scrollDownButtonState, Define.Atlas.Common, this);
+    }
+
+    private void BindButtonActions()
+    {
+        GetButton(Buttons.AttributeButton).BindViewAsButton(OnClickAttributeTab, ViewEvent.LeftClick, this, _attributeButtonState);
+        GetButton(Buttons.TotalButton).BindViewAsButton(OnClickTotalTab, ViewEvent.LeftClick, this, _totalButtonState);
+        GetButton(Buttons.EquipmentButton).BindViewAsButton(OnClickEquipmentTab, ViewEvent.LeftClick, this, _equipmentButtonState);
+        GetButton(Buttons.ConsumptionButton).BindViewAsButton(OnClickConsumptionTab, ViewEvent.LeftClick, this, _consumptionButtonState);
+        GetButton(Buttons.EtcButton).BindViewAsButton(OnClickEtcTab, ViewEvent.LeftClick, this, _etcButtonState);
+        GetButton(Buttons.SortButton).BindViewAsButton(OnClickSortTab, ViewEvent.LeftClick, this, _sortButtonState);
+        GetButton(Buttons.ScrollUpButton).BindViewAsButton(OnClickScrollUp, ViewEvent.LeftClick, this, _scrollUpButtonState);
+        GetButton(Buttons.ScrollDownButton).BindViewAsButton(OnClickScrollDown, ViewEvent.LeftClick, this, _scrollDownButtonState);
     }
 
     public override void Refresh()

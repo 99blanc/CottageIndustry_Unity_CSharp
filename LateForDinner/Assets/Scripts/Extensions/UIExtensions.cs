@@ -7,9 +7,6 @@ using TMPro;
 
 public static class UIExtensions
 {
-    public static void BindModel<T>(this ReactiveProperty<T> model, Action<T> action, IPoolable component)
-        => model.Subscribe(action).RegisterToPool(component);
-
     public static void BindView(this UIBehaviour view, Action<PointerEventData> action, ViewEvent type, IPoolable component, ReactiveProperty<ButtonState> prop = null)
     {
         Observable<PointerEventData> observable = type switch

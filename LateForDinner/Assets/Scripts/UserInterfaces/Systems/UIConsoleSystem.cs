@@ -36,20 +36,20 @@ public class UIConsoleSystem : UISystem
         BindInputField(typeof(InputFields));
         BindScrollRect(typeof(ScrollRects));
         _inputField = GetInputField(InputFields.CommandInputField);
-        _inputField.BindInputSubmit(OnPressSubmit, this);
-        this.BindKey(Literal.Hotkeys.Up, InputEventType.Triggered, OnPressUp).RegisterToPool(this);
-        this.BindKey(Literal.Hotkeys.Down, InputEventType.Triggered, OnPressDown).RegisterToPool(this);
-        this.BindKey(Literal.Hotkeys.Tab, InputEventType.Triggered, OnPressTab).RegisterToPool(this);
     }
 
     public override void OnGet()
     {
         base.OnGet();
-        Refresh();
         _logSubscription?.Dispose();
-        _logSubscription = Managers.Log.OnLogAdded.Subscribe(_ => Refresh());
+        _logSubscription = Managers.Log.OnLogAdded.Subscribe(_ => Refresh()).RegisterToPool(this);
+        _inputField.BindInputSubmit(OnPressSubmit, this);
         Managers.Control.DisableActionMap(Literal.Maps.User);
         ResetInputField();
+        this.BindKey(Literal.Hotkeys.Up, InputEventType.Triggered, OnPressUp).RegisterToPool(this);
+        this.BindKey(Literal.Hotkeys.Down, InputEventType.Triggered, OnPressDown).RegisterToPool(this);
+        this.BindKey(Literal.Hotkeys.Tab, InputEventType.Triggered, OnPressTab).RegisterToPool(this);
+        Refresh();
     }
 
     public override void OnRelease()

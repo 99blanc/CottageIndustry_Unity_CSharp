@@ -43,7 +43,6 @@ public class UITitleDisplay : UIDisplay
         BindPanel(typeof(Panels));
         InitButtons();
         InitSaveSlots();
-        this.BindKey(Literal.Hotkeys.Any, InputEventType.Triggered, OnAnyPressed).RegisterToPool(this);
         Switch(UI_TitleState.Main);
     }
 
@@ -69,6 +68,8 @@ public class UITitleDisplay : UIDisplay
     {
         base.OnGet();
         Switch(_state);
+        this.BindKey(Literal.Hotkeys.Any, InputEventType.Triggered, OnAnyPressed).RegisterToPool(this);
+        Refresh();
     }
 
     public override void Refresh()
