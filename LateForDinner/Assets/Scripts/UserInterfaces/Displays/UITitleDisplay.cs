@@ -41,13 +41,9 @@ public class UITitleDisplay : UIDisplay
         BindButton(typeof(Buttons));
         BindScrollRect(typeof(ScrollRects));
         BindPanel(typeof(Panels));
-        InitButtons();
         InitSaveSlots();
         Switch(UI_TitleState.Main);
     }
-
-    private void InitButtons()
-        => GetButton(Buttons.OptionButton).BindView(OnClickOption, ViewEvent.LeftClick, this);
 
     private void InitSaveSlots()
     {
@@ -69,6 +65,7 @@ public class UITitleDisplay : UIDisplay
         base.OnGet();
         Switch(_state);
         this.BindKey(Literal.Hotkeys.Any, InputEventType.Triggered, OnAnyPressed).RegisterToPool(this);
+        GetButton(Buttons.OptionButton).BindView(OnClickOption, ViewEvent.LeftClick, this);
         Refresh();
     }
 
