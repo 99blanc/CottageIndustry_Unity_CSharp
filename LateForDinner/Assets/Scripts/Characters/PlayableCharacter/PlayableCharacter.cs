@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using UnityEngine;
 using UnityHFSM;
 
@@ -18,8 +18,13 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
         Vector2 position = data.PlayerPosition;
         transform.position = position;
         Rigidbody.position = position;
-        Rigidbody.rotation = data.PlayerRotation;
         Renderer.flipX = data.PlayerFlipX;
+    }
+
+    public override void OnRelease()
+    {
+        base.OnRelease();
+        Managers.Control.ClearSubscribers(this);
     }
 
     private void RegisterInputSubscriptions()
@@ -54,7 +59,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
         Func<bool> crouchInput = IsPlayerCrouchInput;
         Func<float> climbInput = GetPlayerClimbInput;
         Func<bool> dashInput = IsPlayerDashInput;
-        // DESC ::: Idle »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Idle ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Idle,
             to: CharacterStateType.Move,
@@ -85,7 +90,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             to: CharacterStateType.Climb,
             condition: _ => this.IsTryingToClimb(climbInput, crouchInput)
         ));
-        // DESC ::: Move »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Move ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Move,
             to: CharacterStateType.Idle,
@@ -116,7 +121,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             to: CharacterStateType.Climb,
             condition: _ => this.IsTryingToClimb(climbInput, crouchInput)
         ));
-        // DESC ::: Fall »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Fall ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Fall,
             to: CharacterStateType.Idle,
@@ -142,7 +147,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             to: CharacterStateType.Climb,
             condition: _ => this.IsTryingToClimb(climbInput, crouchInput)
         ));
-        // DESC ::: Crouch »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Crouch ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Crouch,
             to: CharacterStateType.Idle,
@@ -163,7 +168,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             to: CharacterStateType.Climb,
             condition: _ => this.IsTryingToClimb(climbInput, crouchInput)
         ));
-        // DESC ::: Jump »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Jump ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Jump,
             to: CharacterStateType.Jump,
@@ -200,7 +205,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             condition: _ => this.IsTryingToClimb(climbInput, crouchInput),
             onTransition: _ => this.AddJumpActionForClimb()
         ));
-        // DESC ::: Roll »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Roll ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Roll,
             to: CharacterStateType.Idle,
@@ -227,7 +232,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             condition: _ => this.IsTryingToClimb(climbInput, crouchInput),
             onTransition: _ => this.AddJumpActionForClimb()
         ));
-        // DESC ::: Dash »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Dash ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Dash,
             to: CharacterStateType.Idle,
@@ -244,7 +249,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             condition: _ => this.IsTryingToClimb(climbInput, crouchInput),
             onTransition: _ => this.AddDashActionForClimb()
         ));
-        // DESC ::: Climb »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Climb ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Climb,
             to: CharacterStateType.Idle,
@@ -280,7 +285,7 @@ public abstract class PlayableCharacter : Character, IIdleableCharacter, IMovabl
             to: CharacterStateType.Dash,
             condition: _ => this.IsTryingToDash(dashInput)
         ));
-        // DESC ::: Throw »óÅÂ¿¡¼­ÀÇ ÀüÈ¯ Á¶°Ç
+        // DESC ::: Throw ìƒíƒœì—ì„œì˜ ì „í™˜ ì¡°ê±´
         fsm.AddTransition(new Transition<CharacterStateType>(
             from: CharacterStateType.Throw,
             to: CharacterStateType.Idle,

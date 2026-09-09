@@ -1,4 +1,4 @@
-using R3;
+﻿using R3;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -67,8 +67,8 @@ public abstract class Character : MonoBehaviour, IPoolable
         .Subscribe(_ =>
         {
             StateMachine.OnLogic();
-            this.IsGrounded();
         }).RegisterToPool(this);
+        StateMachine.RequestStateChange(CharacterStateType.Idle, forceInstantly: true);
         Rigidbody.linearVelocity = Vector2.zero;
         Rigidbody.angularVelocity = 0f;
     }
@@ -95,7 +95,7 @@ public abstract class Character : MonoBehaviour, IPoolable
         Vector3 spawnPosition = targetSpawn.transform.position;
         spawnPosition.y -= Collider.offset.y;
         transform.position = spawnPosition;
-        transform.rotation = targetSpawn.transform.rotation;
+        Rigidbody.position = spawnPosition;
     }
 
     protected virtual void OnTriggerEnter2D(Collider2D target)

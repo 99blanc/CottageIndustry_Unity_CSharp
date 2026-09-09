@@ -80,7 +80,7 @@ public class ConfigManager
     {
         string[] args = Environment.GetCommandLineArgs();
 
-        if (HasNoArguments(args))
+        if (args == null)
             return;
 
         Option.Debug.enableConsole = false;
@@ -104,7 +104,7 @@ public class ConfigManager
 
     public void ApplyToEngine()
     {
-        if (IsOptionInvalid())
+        if (Option == null)
             return;
 
         var graphic = Option.Graphic;
@@ -113,10 +113,4 @@ public class ConfigManager
         Managers.Graphic.ApplyGraphicOptions(graphic);
         Application.runInBackground = !sound.mute;
     }
-
-    private bool HasNoArguments(string[] args)
-        => args == null;
-
-    private bool IsOptionInvalid()
-        => Option == null;
 }

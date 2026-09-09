@@ -1,6 +1,5 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using R3;
-using R3.Triggers;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -45,7 +44,7 @@ public class PoolManager
     {
         foreach (var folderName in _maps.Values)
         {
-            if (HasFolder(folderName))
+            if (_folders.ContainsKey(folderName))
                 continue;
 
             Transform folder = new GameObject { name = folderName }.transform;
@@ -108,7 +107,9 @@ public class PoolManager
         if (gameObject.TryGetComponent<IPoolable>(out var poolable))
             poolable.ProtectedRelease();
 
-        _parents[gameObject] = gameObject.transform.parent;
+        if (gameObject != null)
+            _parents[gameObject] = gameObject.transform.parent;
+
         string newKey = string.IsNullOrEmpty(key) ? gameObject.name : key;
 
         if (!HasRegistry(newKey))
@@ -254,15 +255,9 @@ public class PoolManager
             return;
 
         if (isNew)
-        {
-            instance.OnDisableAsObservable()
-            .Subscribe(_ => poolable.ProtectedRelease())
-            .RegisterToPool(poolable);
             poolable.ProtectedInit();
-            return;
-        }
-
-        poolable.ProtectedGet();
+        else
+            poolable.ProtectedGet();
     }
 
     private Transform GetFolder(string key)
@@ -296,7 +291,7 @@ public class PoolManager
 
                 if (IsInstanceNotNull(instance))
                 {
-                    UnityEngine.Object.Destroy(instance);
+                    Destroy(instance);
                     totalDestroyed++;
                 }
             }
@@ -322,7 +317,7 @@ public class PoolManager
             if (IsInstanceNotNull(instance))
             {
                 _parents.Remove(instance);
-                UnityEngine.Object.Destroy(instance);
+                Destroy(instance);
                 destroyedCount++;
             }
         }
@@ -340,11 +335,16 @@ public class PoolManager
             return;
 
         _parents.Remove(targetObject);
-        UnityEngine.Object.Destroy(targetObject);
+        Destroy(targetObject);
     }
 
     public void Destroy(GameObject targetObject)
-        => UnityEngine.Object.Destroy(targetObject);
+    {
+        if (targetObject.TryGetComponent<IPoolable>(out var poolable))
+            PoolDisposableRegistry.Clear(poolable);
+
+        UnityEngine.Object.Destroy(targetObject);
+    }
 
     public bool DestroyFromFolder(string key, string objectName)
     {
@@ -363,9 +363,6 @@ public class PoolManager
 
         return false;
     }
-
-    private bool HasFolder(string folderName)
-        => _folders.ContainsKey(folderName);
 
     private bool IsInstanceNull(GameObject instance)
         => instance == null;

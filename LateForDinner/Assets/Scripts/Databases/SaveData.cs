@@ -95,7 +95,6 @@ namespace LateForDinner.Data
         public Dictionary<string, bool> InteractableStates;
         public List<AttributeSaveData> SavedAttributes;
         public Vector2 PlayerPosition;
-        public float PlayerRotation;
         public bool PlayerFlipX;
         public List<InventorySlot> TotalSlots;
         public List<InventorySlot> EquipmentTabSlots;
@@ -122,7 +121,6 @@ namespace LateForDinner.Data
             InteractableStates = new Dictionary<string, bool>(),
             SavedAttributes = CharacterID.Protagonist.CreateDefaultAttributes(),
             PlayerPosition = Vector2.zero,
-            PlayerRotation = 0f,
             PlayerFlipX = false,
             TotalSlots = Enumerable.Range(0, Define.Amount.MaxInventorySlot).Select(i => new InventorySlot { GlobalIndex = i, SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),
             EquipmentTabSlots = Enumerable.Range(0, Define.Amount.InventoryTabSize).Select(i => new InventorySlot { SlotIndex = i, ItemID = 0, Quantity = 0 }).ToList(),

@@ -234,6 +234,7 @@ public class ControlManager
 
         _actionAsset?.FindActionMap(mapName)?.Disable();
     }
+
     private bool IsAuthorized(IPoolable owner, string actionName)
     {
         if (owner == null) 
@@ -435,4 +436,13 @@ public class ControlManager
 
     public void ResetBindings()
         => _actionAsset?.RemoveAllBindingOverrides();
+
+    public void ClearSubscribers(IPoolable owner)
+    {
+        if (owner == null)
+            return;
+
+        foreach (var pair in _subscribers)
+            pair.Value.Remove(owner);
+    }
 }

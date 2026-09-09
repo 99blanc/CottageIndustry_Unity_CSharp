@@ -1,5 +1,4 @@
 using Cysharp.Threading.Tasks;
-using LateForDinner.Data;
 using System;
 using UnityEngine;
 
@@ -362,7 +361,7 @@ public class CommandRegistry
         var data = Managers.Save.CurrentData;
         Vector2 lookDir = Managers.Game.Player.GetLookDirection();
         Vector3 spawnPosition = Managers.Game.Player.transform.position + (Vector3)(lookDir * 2f);
-        await Managers.Game.SpawnCharacterAsync<Character>(characterID, !data.PlayerFlipX, spawnPosition, data.PlayerRotation);
+        await Managers.Game.SpawnCharacterAsync<Character>(characterID, !data.PlayerFlipX, spawnPosition);
         Log.Info(LocalizationKey.Console_Spawn_Success, characterID);
     }
 

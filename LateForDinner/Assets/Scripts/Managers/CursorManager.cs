@@ -107,9 +107,9 @@ public class CursorManager
             return;
         }
 
-        bool isClicked = IsLeftMousePressed();
+        bool isClicked = Mouse.current != null && Mouse.current.leftButton.isPressed;
 
-        if (IsInitialMousePosition())
+        if (_lastMousePosition == Vector2.negativeInfinity)
         {
             _lastMousePosition = mousePosition;
             SetCursorVisibility(false);
@@ -120,13 +120,13 @@ public class CursorManager
         {
             UpdateLastMousePosition(mousePosition);
 
-            if (!IsCursorVisibleState())
+            if (!_isCursorVisible)
                 SetCursorVisibility(true);
         }
 
         HandleCursorVisibility(mousePosition);
 
-        if (!IsCursorVisibleState())
+        if (!_isCursorVisible)
             return;
 
         UpdateCursorPosition(mousePosition);
@@ -144,7 +144,7 @@ public class CursorManager
 
     private void HandleCursorVisibility(Vector2 currentMousePosition)
     {
-        if (IsInitialMousePosition())
+        if (_lastMousePosition == Vector2.negativeInfinity)
         {
             InitializeMousePositionState(currentMousePosition);
             return;
@@ -154,13 +154,13 @@ public class CursorManager
         {
             UpdateLastMousePosition(currentMousePosition);
 
-            if (!IsCursorVisibleState())
+            if (!_isCursorVisible)
                 SetCursorVisibility(true);
 
             return;
         }
 
-        if (IsCursorVisibleState() && HasCursorInactivityTimeoutExceeded())
+        if (_isCursorVisible && HasCursorInactivityTimeoutExceeded())
             SetCursorVisibility(false);
     }
 
@@ -195,15 +195,6 @@ public class CursorManager
 
         Cursor.visible = !isVisible;
     }
-
-    private bool IsCursorVisibleState()
-        => _isCursorVisible;
-
-    private bool IsLeftMousePressed()
-        => Mouse.current != null && Mouse.current.leftButton.isPressed;
-
-    private bool IsInitialMousePosition()
-        => _lastMousePosition == Vector2.negativeInfinity;
 
     private void InitializeMousePositionState(Vector2 currentMousePosition)
     {

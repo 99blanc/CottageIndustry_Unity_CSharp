@@ -47,17 +47,14 @@ public class SceneManager
 
     public void RelocateCharacterToSpawnpoint()
     {
-        if (IsCharacterNull())
+        if (Managers.Game.Player == null)
         {
             Log.Warning(LocalizationKey.Log_Scene_NotFoundCharacter);
             return;
         }
 
-        if (IsPreviousSceneBeforeHospital())
-        {
+        if (_previousID < SceneID.Hospital1)
             Log.System(LocalizationKey.Log_Scene_NotExistPreviousScene);
-            return;
-        }
 
         if (TryGetTargetSpawnpoint(out var targetSpawn))
         {
@@ -120,12 +117,6 @@ public class SceneManager
     private bool IsSpawnValid(Spawnpoint spawn)
         => spawn != null;
 
-    private bool IsCharacterNull()
-        => Managers.Game.Player == null;
-
-    private bool IsPreviousSceneBeforeHospital()
-        => _previousID < SceneID.Hospital1;
-
     private bool TryGetTargetSpawnpoint(out Spawnpoint targetSpawn)
     {
         targetSpawn = null;
@@ -156,7 +147,13 @@ public class SceneManager
             return;
 
         prop.OnDisableAsObservable()
-        .Subscribe(_ => UnregisterProp(prop))
+        .Subscribe(_ => 
+        { 
+            UnregisterProp(prop); 
+            (prop as IPoolable).ProtectedRelease(); 
+        }).RegisterToPool(prop as IPoolable);
+        prop.OnDestroyAsObservable()
+        .Subscribe(_ => PoolDisposableRegistry.Clear(prop as IPoolable))
         .RegisterToPool(prop as IPoolable);
         var check = prop.FindChild<Collider2D>()?.isTrigger;
         var transform = prop.FindChild(Literal.Objects.InteractTransform, recursive: false);

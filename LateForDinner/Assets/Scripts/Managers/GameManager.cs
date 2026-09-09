@@ -38,12 +38,12 @@ public class GameManager
             Managers.Save.Newgame(slotIndex);
             var data = Managers.Save.CurrentData;
             Managers.Inventory.InitInventory(data.TotalSlots, data.EquipmentTabSlots, data.ConsumptionTabSlots, data.EtcTabSlots, data.EquipmentSlots, data.QuickSlots);
-            await Managers.Save.SaveAsync();
             await load.LoadAsync(0.5f, LocalizationKey.Log_Game_Loading_ResourcePackaging);
             await Managers.Preload.Release_GameAsync(data);
             await load.LoadAsync(0.7f, LocalizationKey.Log_Game_Loading_PlayerSpawn);
             await PrepareAndSpawnPlayerAsync(true);
             await load.LoadAsync(1.0f, LocalizationKey.Log_Game_Loading_NewData);
+            await Managers.Save.SaveAsync();
         })).Load();
 
         Managers.UI.OpenDisplay<UIHeadUpDisplay>();
@@ -87,12 +87,11 @@ public class GameManager
     {
         var data = Managers.Save.CurrentData;
         DespawnCharacter(ref _player);
-        var character = await SpawnCharacterAsync<T>(characterID, data.PlayerFlipX, data.PlayerPosition, data.PlayerRotation);
+        var character = await SpawnCharacterAsync<T>(characterID, data.PlayerFlipX, data.PlayerPosition);
 
         if (character != null)
         {
             _player = character;
-            UnityEngine.Object.DontDestroyOnLoad(character.gameObject);
             Managers.Camera.SetTarget(Player);
         }
 
@@ -102,7 +101,7 @@ public class GameManager
     public async UniTask<PlayableCharacter> SpawnPlayerAsync(CharacterID characterID)
         => await SpawnPlayerAsync<PlayableCharacter>(characterID);
 
-    public async UniTask<T> SpawnCharacterAsync<T>(CharacterID characterID, bool flipX, Vector3 position, float rotation = default) where T : Character
+    public async UniTask<T> SpawnCharacterAsync<T>(CharacterID characterID, bool flipX, Vector3 position) where T : Character
     {
         var (characterPrefab, rentHandle) = await CreateCharacterPrefabAsync(characterID);
 
@@ -110,7 +109,6 @@ public class GameManager
             return default;
 
         characterPrefab.transform.position = position;
-        characterPrefab.transform.rotation = Quaternion.Euler(0f, 0f, rotation);
         var characterComponent = characterPrefab.GetComponentAssert<Character>();
         characterComponent.RentHandle = rentHandle;
         characterComponent.Renderer.flipX = flipX;

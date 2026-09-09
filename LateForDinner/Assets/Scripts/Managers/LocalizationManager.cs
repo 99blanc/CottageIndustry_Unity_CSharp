@@ -134,7 +134,7 @@ public class LocalizationManager
     {
         var dict = new Dictionary<string, string>();
 
-        if (IsDataModelNull())
+        if (Managers.Data == null)
             return dict;
 
         foreach (var data in Managers.Data.Localization.Values)
@@ -200,7 +200,7 @@ public class LocalizationManager
     {
         string text = Get(id);
 
-        if (HasNoArguments(args))
+        if (args == null || args.Length == 0)
             return text;
 
         try
@@ -234,12 +234,6 @@ public class LocalizationManager
         Log.Info(LocalizationKey.Log_Localization_LoadedSuccessfully);
     }
 
-    private bool IsDataModelNull()
-        => Managers.Data == null;
-
     private bool IsLocalizationFormatInvalid(LocalizationFormat format)
         => format == null || string.IsNullOrEmpty(format.Locate);
-
-    private bool HasNoArguments(object[] args)
-        => args == null || args.Length == 0;
 }

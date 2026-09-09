@@ -49,7 +49,7 @@ public interface IDashableCharacter
             .Where(count => count <= 0)
             .Subscribe(_ =>
             {
-                if (!val.CooldownRegistry.IsOnCooldown)
+                if (val.CooldownRegistry != null && !val.CooldownRegistry.IsOnCooldown)
                 {
                     float cooldownTime = character.Attributes.Get<float>(AttributeType.DashCooldown).CurrentValue;
                     val.CooldownRegistry.CooldownTime = cooldownTime;
@@ -83,7 +83,6 @@ public interface IDashableCharacter
             return;
 
         var val = GetOrCreateDashState(this);
-
         val.OriginalGravityScale = Rigidbody.gravityScale;
         val.DurationTimer = Define.Scaler.Duration;
         val.DashDirection = inputDirection;
@@ -107,6 +106,7 @@ public interface IDashableCharacter
     public void UpdateDashing(float deltaTime)
     {
         var val = GetOrCreateDashState(this);
+
         if (val.DurationTimer > 0f)
             val.DurationTimer -= deltaTime;
     }

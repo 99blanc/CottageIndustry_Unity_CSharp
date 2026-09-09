@@ -17,7 +17,7 @@ public class LogManager
     {
         _isReady.Value = true;
 
-        while (HasPendingLogs())
+        while (_pendingLogs.Count > 0)
             _pendingLogs.Dequeue()?.Invoke();
 
         Write(LocalizationKey.Log_Log_SetupCompleted, LogType.System);
@@ -25,7 +25,7 @@ public class LogManager
 
     private void ProcessLog(Action logAction)
     {
-        if (!IsReadyState())
+        if (!_isReady.CurrentValue)
         {
             _pendingLogs.Enqueue(logAction);
             return;
@@ -55,7 +55,7 @@ public class LogManager
             var logData = new LogFormat { Message = log, Type = type };
             _logs.Add(logData);
 
-            if (IsLogStorageExceeded())
+            if (_logs.Count > Define.Log.Storage)
                 _logs.RemoveAt(0);
 
             _logSubject.OnNext(logData);
@@ -80,7 +80,7 @@ public class LogManager
         ProcessLog(() =>
         {
             string message = GetMessage(key);
-            string formatted = HasArguments(args) ? ZString.Format(message, args) : message;
+            string formatted = args != null && args.Length > 0 ? ZString.Format(message, args) : message;
             Write(formatted, type);
         });
     }
@@ -110,22 +110,7 @@ public class LogManager
     private string GetMessage(LocalizationKey key)
     {
         string newKey = key.ToString();
-        string raw = IsLocalizationManagerNull() ? newKey : Managers.Localization.Get(newKey);
+        string raw = Managers.Localization == null ? newKey : Managers.Localization.Get(newKey);
         return string.IsNullOrEmpty(raw) ? newKey : raw;
     }
-
-    private bool HasPendingLogs()
-        => _pendingLogs.Count > 0;
-
-    private bool IsReadyState()
-        => _isReady.CurrentValue;
-
-    private bool IsLogStorageExceeded()
-        => _logs.Count > Define.Log.Storage;
-
-    private bool HasArguments(object[] args)
-        => args != null && args.Length > 0;
-
-    private bool IsLocalizationManagerNull()
-        => Managers.Localization == null;
 }

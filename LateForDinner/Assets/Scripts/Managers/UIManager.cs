@@ -245,10 +245,10 @@ public class UIManager
 
     public bool CloseFocusPopup()
     {
-        if (HasNoPopups())
+        if (_popups.Count <= 0)
             return false;
 
-        var topPopup = GetTopPopup();
+        var topPopup = _popups[_popups.Count - 1];
         Close(topPopup);
         return true;
     }
@@ -407,12 +407,6 @@ public class UIManager
 
         return targets;
     }
-
-    private bool HasNoPopups()
-        => _popups.Count <= 0;
-
-    private UIPopup GetTopPopup()
-        => _popups[_popups.Count - 1];
 
     private bool IsPopupValidAndOpened(UIPopup popup)
         => popup != null && _popups.Contains(popup);

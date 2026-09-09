@@ -52,7 +52,7 @@ public class CameraManager
 
     public void SetTarget(PlayableCharacter character)
     {
-        if (IsVirtualCameraNull() || character == null)
+        if (_vcam == null || character == null)
             return;
 
         _vcam.Follow = character.CameraTransform;
@@ -68,7 +68,7 @@ public class CameraManager
 
     public void SetCameraMode(CameraWorkMode mode)
     {
-        if (IsFollowNull())
+        if (_follow == null)
             return;
 
         _currentMode = mode;
@@ -113,10 +113,4 @@ public class CameraManager
         // TODO: 컵헤드 스타일 구현
         _follow.TrackerSettings.PositionDamping = new Vector3(0.4f, 0.4f, 0f);
     }
-
-    private bool IsVirtualCameraNull()
-        => _vcam == null;
-
-    private bool IsFollowNull()
-        => _follow == null;
 }

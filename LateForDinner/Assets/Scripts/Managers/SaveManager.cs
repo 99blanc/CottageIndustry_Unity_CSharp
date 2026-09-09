@@ -220,7 +220,6 @@ public class SaveManager
         {
             CurrentData.SavedAttributes = player.Attributes.ExportSaveData();
             CurrentData.PlayerPosition = player.transform.position;
-            CurrentData.PlayerRotation = player.transform.rotation.z;
             CurrentData.PlayerFlipX = player.Renderer.flipX;
         }
 

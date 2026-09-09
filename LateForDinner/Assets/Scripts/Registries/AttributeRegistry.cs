@@ -1,8 +1,7 @@
-using LateForDinner.Data;
+﻿using LateForDinner.Data;
 using R3;
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class AttributeRegistry
 {

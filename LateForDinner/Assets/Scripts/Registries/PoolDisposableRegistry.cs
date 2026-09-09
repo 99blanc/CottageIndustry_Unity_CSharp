@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 internal static class PoolDisposableRegistry
 {
-    private static readonly Dictionary<IPoolable, DisposableBag> _bags = new Dictionary<IPoolable, DisposableBag>();
+    private static readonly Dictionary<IPoolable, CompositeDisposable> _bags = new Dictionary<IPoolable, CompositeDisposable>();
 
     public static void Register(IPoolable owner, IDisposable disposable)
     {
@@ -13,7 +13,7 @@ internal static class PoolDisposableRegistry
 
         if (!_bags.TryGetValue(owner, out var bag))
         {
-            bag = new DisposableBag();
+            bag = new CompositeDisposable();
             _bags[owner] = bag;
         }
 
@@ -22,6 +22,9 @@ internal static class PoolDisposableRegistry
 
     public static void Clear(IPoolable owner)
     {
+        if (owner == null)
+            return;
+
         if (_bags.TryGetValue(owner, out var bag))
         {
             bag.Dispose();

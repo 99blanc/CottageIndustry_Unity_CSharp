@@ -22,7 +22,7 @@ public class ResourceManager
 
         if (_handles.TryGetValue(path, out var handle))
         {
-            if (IsHandleNotDone(handle))
+            if (!handle.IsDone)
                 await handle.ToUniTask();
 
             return handle.Result as T;
@@ -33,7 +33,7 @@ public class ResourceManager
 
     private void CleanupInvalidHandleIfNeeded(string path)
     {
-        if (_handles.TryGetValue(path, out var handle) && IsHandleInvalid(handle))
+        if (_handles.TryGetValue(path, out var handle) && !handle.IsValid())
             _handles.Remove(path);
     }
 
@@ -45,16 +45,16 @@ public class ResourceManager
             _handles[path] = asyncHandle;
             T asset = await asyncHandle.ToUniTask();
 
-            if (IsAssetNotNull(asset))
+            if (asset != null)
                 return asset;
 
-            RemoveHandle(path);
+            _handles.Remove(path);
             Log.Error(LocalizationKey.Log_Resource_LoadFailed_Null, path);
             return null;
         }
         catch
         {
-            RemoveHandle(path);
+            _handles.Remove(path);
             Log.Error(LocalizationKey.Log_Resource_LoadFailed_Exception, path);
             return null;
         }
@@ -69,7 +69,7 @@ public class ResourceManager
     public async UniTask<Sprite> LoadSpriteAsync(string atlas, string sprite)
     {
         SpriteAtlas sprites = await LoadAssetAsync<SpriteAtlas>(atlas);
-        return IsSpriteAtlasNull(sprites) ? null : sprites.GetSprite(sprite);
+        return sprites == null ? null : sprites.GetSprite(sprite);
     }
 
     public async UniTask<GameObject> LoadPrefabAsync(string path)
@@ -102,7 +102,7 @@ public class ResourceManager
 
     public T Get<T>(string path) where T : Object
     {
-        if (_handles.TryGetValue(path, out var handle) && IsHandleValidAndDone(handle))
+        if (_handles.TryGetValue(path, out var handle) && handle.IsValid() && handle.IsDone)
             return handle.Result as T;
 
         return null;
@@ -140,7 +140,7 @@ public class ResourceManager
 
     public Texture2D GetTextureFromSprite(Sprite sprite)
     {
-        if (IsSpriteNull(sprite))
+        if (sprite == null)
             return null;
 
         var rect = sprite.textureRect;
@@ -160,7 +160,7 @@ public class ResourceManager
 
     public GameObject Instantiate(GameObject prefab, Transform parent = null, bool hasWorldPosition = false)
     {
-        if (IsPrefabNull(prefab))
+        if (prefab == null)
             return null;
 
         return Object.Instantiate(prefab, parent, hasWorldPosition);
@@ -188,30 +188,6 @@ public class ResourceManager
 
         _handles.Clear();
     }
-
-    private bool IsHandleNotDone(AsyncOperationHandle handle)
-        => !handle.IsDone;
-
-    private bool IsHandleInvalid(AsyncOperationHandle handle)
-        => !handle.IsValid();
-
-    private bool IsAssetNotNull(Object asset)
-        => asset != null;
-
-    private void RemoveHandle(string path)
-        => _handles.Remove(path);
-
-    private bool IsSpriteAtlasNull(SpriteAtlas sprites)
-        => sprites == null;
-
-    private bool IsHandleValidAndDone(AsyncOperationHandle handle)
-        => handle.IsValid() && handle.IsDone;
-
-    private bool IsSpriteNull(Sprite sprite)
-        => sprite == null;
-
-    private bool IsPrefabNull(GameObject prefab)
-        => prefab == null;
 
     private void ReleaseHandleIfValid(AsyncOperationHandle handle)
     {
