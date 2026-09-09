@@ -109,4 +109,19 @@ public interface IAnimatableUI
             }
         }
     }
+
+    public void Reset()
+    {
+        var val = _animatableValue.GetOrCreateValue(this);
+
+        if (val.Token != null)
+        {
+            val.Token.Cancel();
+            val.Token.Dispose();
+            val.Token = null;
+        }
+
+        if (val.Animator != null)
+            val.Animator.enabled = false;
+    }
 }

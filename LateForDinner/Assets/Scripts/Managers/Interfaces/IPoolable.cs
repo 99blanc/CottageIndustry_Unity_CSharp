@@ -27,6 +27,30 @@ public interface IPoolable
         this.SetPooled(true);
         PoolDisposableRegistry.Clear(this);
         OnRelease();
+
+        if (this is IAnimatableUI animatable)
+            animatable.Reset();
+
+        if (this is IDraggablePopup draggablePopup)
+            draggablePopup.Reset();
+
+        if (this is IDraggableSlotVariant draggableSlot)
+            draggableSlot.Reset();
+
+        if (this is IInteractable interactable)
+            interactable.Reset();
+
+        if (this is ICrouchableCharacter crouchable)
+            crouchable.Reset();
+
+        if (this is IDashableCharacter dashable)
+            dashable.Reset();
+
+        if (this is IClimbableCharacter climbable)
+            climbable.Reset();
+
+        if (this is ICarriableCharacter carriable)
+            carriable.Reset();
     }
 
     virtual void OnInit() { }

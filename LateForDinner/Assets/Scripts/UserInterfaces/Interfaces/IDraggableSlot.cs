@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public interface IDraggableSlot<TTarget> : IBeginDragHandler, IDragHandler, IEndDragHandler where TTarget : Component
+public interface IDraggableSlot<TTarget> : IDraggableSlotVariant, IBeginDragHandler, IDragHandler, IEndDragHandler where TTarget : Component
 {
     private static readonly ConditionalWeakTable<IDraggableSlot<TTarget>, SlotDragState> _dragValues = new ConditionalWeakTable<IDraggableSlot<TTarget>, SlotDragState>();
     private class SlotDragState
@@ -98,5 +98,26 @@ public interface IDraggableSlot<TTarget> : IBeginDragHandler, IDragHandler, IEnd
             OnDropItem(targetSlot);
 
         state.IsDragging = false;
+    }
+
+    void IDraggableSlotVariant.Reset()
+    {
+        if (_dragValues.TryGetValue(this, out var state))
+        {
+            if (state.CanvasGroup != null)
+            {
+                state.CanvasGroup.alpha = 1f;
+                state.CanvasGroup.blocksRaycasts = true;
+            }
+
+            if (state.GhostImage != null)
+            {
+                Managers.UI.Close(state.GhostImage);
+                state.GhostImage = null;
+            }
+
+            state.IsDragging = false;
+            state.SlotIndex = -1;
+        }
     }
 }

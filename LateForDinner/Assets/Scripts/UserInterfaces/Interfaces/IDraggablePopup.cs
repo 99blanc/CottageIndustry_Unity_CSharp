@@ -87,4 +87,10 @@ public interface IDraggablePopup : IBeginDragHandler, IDragHandler, IEndDragHand
         targetPosition.y = Mathf.Clamp(targetPosition.y, minY, maxY);
         return targetPosition;
     }
+
+    public void Reset()
+    {
+        var val = _dragValues.GetOrCreateValue(this);
+        val.CanDrag = true;
+    }
 }

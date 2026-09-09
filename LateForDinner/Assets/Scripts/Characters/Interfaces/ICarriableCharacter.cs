@@ -92,4 +92,15 @@ public interface ICarriableCharacter
         IsHoldingProp = false;
         HasThrown = false;
     }
+
+    public void Reset()
+    {
+        if (this is Character character)
+            character.CurrentHoldInteractionType = InteractionType.None;
+
+        var val = _carryValues.GetOrCreateValue(this);
+        val.HeldProp = null;
+        val.IsHoldingProp = false;
+        val.HasThrown = false;
+    }
 }

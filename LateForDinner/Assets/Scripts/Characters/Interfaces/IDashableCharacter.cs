@@ -120,4 +120,19 @@ public interface IDashableCharacter
         Rigidbody.gravityScale = val.OriginalGravityScale;
         Rigidbody.linearVelocity = Vector2.zero;
     }
+
+    public void Reset()
+    {
+        var val = _dashValue.GetOrCreateValue(this);
+
+        if (val.CooldownRegistry != null && val.CooldownRegistry.IsOnCooldown)
+        {
+            Managers.Cooldown.Unregister(val.CooldownRegistry);
+            val.CooldownRegistry.IsOnCooldown = false;
+            val.CooldownRegistry.CurrentCooldown = 0f;
+        }
+
+        val.DurationTimer = 0f;
+        val.IsInitialized = false;
+    }
 }

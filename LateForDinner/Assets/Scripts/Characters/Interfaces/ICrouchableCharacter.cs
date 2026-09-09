@@ -54,4 +54,17 @@ public interface ICrouchableCharacter
         CapsuleCollider.offset = state.OriginalOffset;
         CapsuleCollider.size = state.OriginalSize;
     }
+
+    public void Reset()
+    {
+        var state = StateValue;
+
+        if (state.IsInitialized && CapsuleCollider != null)
+        {
+            CapsuleCollider.offset = state.OriginalOffset;
+            CapsuleCollider.size = state.OriginalSize;
+        }
+
+        state.IsInitialized = false;
+    }
 }

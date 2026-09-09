@@ -78,4 +78,22 @@ public interface IClimbableCharacter
         float targetVelocityY = directionY * maxClimbSpeed;
         Rigidbody.linearVelocity = new Vector2(targetVelocityX, targetVelocityY);
     }
+
+    public void Reset()
+    {
+        var val = _climbValue.GetOrCreateValue(this);
+
+        if (val.ExitCooldown != null && val.ExitCooldown.IsOnCooldown)
+        {
+            Managers.Cooldown.Unregister(val.ExitCooldown);
+            val.ExitCooldown.IsOnCooldown = false;
+            val.ExitCooldown.CurrentCooldown = 0f;
+        }
+
+        val.IsClimbing = false;
+        val.CurrentLadder = null;
+
+        if (Rigidbody != null)
+            Rigidbody.gravityScale = 1f;
+    }
 }

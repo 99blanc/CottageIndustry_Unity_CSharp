@@ -61,4 +61,18 @@ public interface IInteractable
     }
 
     virtual void OnInteract(Character character) { }
+
+    public void Reset()
+    {
+        if (_interactCaches.TryGetValue(this, out var reactiveProp))
+            reactiveProp.Value = false;
+
+        if (_interactValue.TryGetValue(this, out var val))
+        {
+            val.InteractRadius = 0f;
+            val.Priority = 0;
+        }
+
+        _actionCaches.Remove(this);
+    }
 }
