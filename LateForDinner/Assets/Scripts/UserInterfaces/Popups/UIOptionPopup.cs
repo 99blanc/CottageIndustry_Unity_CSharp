@@ -567,7 +567,18 @@ public class UIOptionPopup : UIPopup, IDraggablePopup, IFocusablePopup
     public override void OnRelease()
     {
         base.OnRelease();
+        ClearKeybindSlots();
         CloseAllDropdowns();
+    }
+
+    private void ClearKeybindSlots()
+    {
+        foreach (var slot in _keybinds)
+        {
+            if (slot != null)
+                Managers.Pool.Push(slot);
+        }
+        _keybinds.Clear();
     }
 
     private void OnClickSound(PointerEventData data) 
