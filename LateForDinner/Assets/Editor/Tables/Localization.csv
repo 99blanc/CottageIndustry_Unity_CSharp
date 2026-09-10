@@ -30,6 +30,20 @@ Language,언어
 Reset,초기화
 Switch,전환
 Play,플레이
+# Index: Item,
+Item_Equipment,장비
+Item_Consumption,소비
+Item_Etc,기타
+Item_Head,머리
+Item_Chest,상의
+Item_Pants,하의
+Item_Boots,신발
+Item_Greatsword,대검
+Item_Dagger,단검
+Item_Blunt,둔기
+Item_Bow,활
+Item_Throw,투척
+Item_Equipment_Format,{0}: {1}
 #Index: Scene,
 Scene_Bootstrap,진입점
 Scene_Hospital1,병원 입구 1

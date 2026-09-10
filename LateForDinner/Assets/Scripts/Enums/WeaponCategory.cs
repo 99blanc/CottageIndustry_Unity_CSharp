@@ -4,5 +4,5 @@ public enum WeaponCategory
     Dagger     = 2,
     Blunt      = 4,
     Bow        = 8,
-    Thorw      = 16,
+    Throw      = 16,
 }

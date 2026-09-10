@@ -76,12 +76,6 @@ public class Define
         public const int Start = 1;
     }
 
-    public class Execute
-    {
-        public const string Console = "-console";
-        public const string Debug = "-debug";
-    }
-
     public class Framerate
     {
         public const float PollingTime = 0.5f;

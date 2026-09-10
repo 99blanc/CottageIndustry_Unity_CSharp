@@ -27,7 +27,6 @@ public class UIConsoleSystem : UISystem
     private bool _showSystem = true;
     private string _searchKeyword = string.Empty;
     private int _clearThresholdIndex = 0;
-    private IDisposable _logSubscription;
 
     public override void OnInit()
     {
@@ -41,8 +40,7 @@ public class UIConsoleSystem : UISystem
     public override void OnGet()
     {
         base.OnGet();
-        _logSubscription?.Dispose();
-        _logSubscription = Managers.Log.OnLogAdded.Subscribe(_ => Refresh()).RegisterToPool(this);
+        Managers.Log.OnLogAdded.Subscribe(_ => Refresh()).RegisterToPool(this);
         _inputField.BindInputSubmit(OnPressSubmit, this);
         Managers.Control.DisableActionMap(Literal.Maps.User);
         ResetInputField();
@@ -55,8 +53,6 @@ public class UIConsoleSystem : UISystem
     public override void OnRelease()
     {
         base.OnRelease();
-        _logSubscription?.Dispose();
-        _logSubscription = null;
         Managers.Control.EnableActionMap(Literal.Maps.User);
     }
 

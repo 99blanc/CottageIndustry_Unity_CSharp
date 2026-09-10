@@ -16,17 +16,16 @@ public class UISplashDisplay : UIDisplay, IAnimatableUI
     {
         base.OnInit();
         BindImage(typeof(Images));
-        Revert();
     }
 
     public override void OnGet()
     {
         base.OnGet();
-        Revert();
+        Refresh();
         this.BindKey(Literal.Hotkeys.Any, InputEventType.Triggered, () => CancelToken("SplashTask")).RegisterToPool(this);
     }
 
-    private void Revert()
+    public override void Refresh()
     {
         SetAlpha(Images.UnityImage, 0f);
         SetAlpha(Images.TeamImage, 0f);

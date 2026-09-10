@@ -6,7 +6,7 @@ namespace LateForDinner.Data
     public partial class ItemData
     {
         public int ID { get; set; }
-        public string ItemType { get; set; }
+        public string ItemCategory { get; set; }
         public string NameKey { get; set; }
         public string DescriptionKey { get; set; }
         public string FlavorKey { get; set; }

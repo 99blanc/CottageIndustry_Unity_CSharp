@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class UIItemDetailPopup : UIPopup
 {
     private enum Images

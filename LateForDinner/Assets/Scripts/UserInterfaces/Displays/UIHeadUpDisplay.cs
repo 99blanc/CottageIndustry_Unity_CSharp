@@ -42,8 +42,7 @@ public class UIHeadUpDisplay : UIDisplay
     public override void OnGet()
     {
         base.OnGet();
-        ClearQuickSlots();
-        GetQuickSlots();
+        SetQuickSlots();
         GetDashSlots();
         GetHealthSlots();
         GetTemporaryHealthSlots();
@@ -76,7 +75,7 @@ public class UIHeadUpDisplay : UIDisplay
         Refresh();
     }
 
-    private void ClearQuickSlots()
+    private void SetQuickSlots()
     {
         foreach (var slot in _quickSlots)
         {
@@ -85,10 +84,6 @@ public class UIHeadUpDisplay : UIDisplay
         }
 
         _quickSlots.Clear();
-    }
-
-    private void GetQuickSlots()
-    {
         var content = GetRectTransform(RectTransforms.SlotContent).transform;
         var quickSlotsData = Managers.Inventory?.GetQuickSlots();
 
@@ -135,25 +130,13 @@ public class UIHeadUpDisplay : UIDisplay
         base.Refresh();
         var player = Managers.Game.Player;
         var dashAttribute = player.Attributes.GetBase<int>(AttributeType.DashCount);
-
-        if (dashAttribute != null)
-            UpdateDashSlots(dashAttribute.CurrentValue);
-
+        UpdateDashSlots(dashAttribute.CurrentValue);
         var maxHealthAttribute = player.Attributes.GetBase<int>(AttributeType.Health);
-
-        if (maxHealthAttribute != null)
-        {
-            int initialSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
-            UpdateHealthSlots(initialSlotCount);
-        }
-
+        int initialHealthSlotCount = Mathf.CeilToInt(maxHealthAttribute.CurrentValue / 2f);
+        UpdateHealthSlots(initialHealthSlotCount);
         var maxTempHealthAttribute = player.Attributes.GetBase<int>(AttributeType.TemporaryHealth);
-
-        if (maxTempHealthAttribute != null)
-        {
-            int initialSlotCount = Mathf.CeilToInt(maxTempHealthAttribute.CurrentValue / 2f);
-            UpdateTemporaryHealthSlots(initialSlotCount);
-        }
+        int initialTemporaryHealthSlotCount = Mathf.CeilToInt(maxTempHealthAttribute.CurrentValue / 2f);
+        UpdateTemporaryHealthSlots(initialTemporaryHealthSlotCount);
     }
 
     private void UpdateDashSlots(int maxDashCount)

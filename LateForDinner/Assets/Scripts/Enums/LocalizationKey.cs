@@ -26,6 +26,19 @@ public enum LocalizationKey
     Reset                                              , // 초기화
     Switch                                             , // 전환
     Play                                               , // 플레이
+    Item_Equipment                                     , // 장비
+    Item_Consumption                                   , // 소비
+    Item_Etc                                           , // 기타
+    Item_Head                                          , // 머리
+    Item_Chest                                         , // 상의
+    Item_Pants                                         , // 하의
+    Item_Boots                                         , // 신발
+    Item_Greatsword                                    , // 대검
+    Item_Dagger                                        , // 단검
+    Item_Blunt                                         , // 둔기
+    Item_Bow                                           , // 활
+    Item_Throw                                         , // 투척
+    Item_Equipment_Format                              , // {0}: {1}
     Scene_Bootstrap                                    , // 진입점
     Scene_Hospital1                                    , // 병원 입구 1
     Scene_Hospital2                                    , // 병원 입구 2
@@ -174,7 +187,8 @@ public enum LocalizationKey
     Log_Log_SetupCompleted                             , // [LogManager] 로깅 시스템 초기화 및 대기열 처리를 완료했습니다.
     Log_Pool_InstantiateFailed                         , // [PoolManager] 키에 해당하는 오브젝트 생성에 실패했습니다: '{0}'
     Log_Pool_DestroyResult                             , // [PoolManager] {0}개의 풀링 오브젝트를 파괴했습니다: (Key: '{1}')
-    Log_Pool_Cleared                                   , // [PoolManager] 오브젝트 풀을 정리했습니다. 총 파괴된 개수: {0}
+    Log_Pool_Cleared                                   , // [PoolManager] 오브젝트 풀을 정리했습니다. 총 파괴된 개수: '{0}'
+    Log_Pool_SyncInstantiateFailed                     , // [PoolManager] 미리 로드된 풀이 없어 동기 생성에 실패했습니다: '{0}'
     Log_Preload_BootStarted                            , // [PreloadManager] 게임 초기 부팅 프리로드 프로세스를 시작합니다.
     Log_Preload_Boot_Data                              , // [PreloadManager] 환경 설정을 불러오는 중...
     Log_Preload_Boot_Asset                             , // [PreloadManager] 에셋 리소스를 불러오는 중...

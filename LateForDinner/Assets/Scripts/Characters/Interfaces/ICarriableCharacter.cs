@@ -28,7 +28,7 @@ public interface ICarriableCharacter
 
     public void PickupProp(Prop prop)
     {
-        if (this is not Character character || prop is not IInteractable interactable)
+        if (this is not Character character || prop is not IInteractable interactable || prop is not IPoolable poolable)
             return;
 
         character.CurrentHoldInteractionType = interactable.InteractionType;

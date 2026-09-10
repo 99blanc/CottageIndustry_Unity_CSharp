@@ -24,9 +24,6 @@ public static class Table
             case "Character":
                 ConvertGeneric<CharacterData>(name, GenerateCharacterID);
                 break;
-            case "Item":
-                ConvertGeneric<ItemData>(name, GenerateItemType);
-                break;
             case "ConsumptionItem":
                 ConvertGeneric<ConsumptionItemData>(name, records =>
                 {
@@ -39,6 +36,9 @@ public static class Table
                 break;
             case "ItemTemplate":
                 ConvertGeneric<ItemTemplateData>(name, GenerateApplyType);
+                break;
+            case "ItemCategory":
+                ConvertGeneric<ItemCategoryData>(name, GenerateItemCategory);
                 break;
             case "ArmorCategory":
                 ConvertGeneric<ArmorCategoryData>(name, GenerateArmorCategory);
@@ -104,12 +104,6 @@ public static class Table
         WriteEnumFile(filePath, "CharacterID", records, data => data.Name, data => $"    {data.Name.Trim().PadRight(GetMaxKeyLength(records, d => d.Name))} = {data.ID},");
     }
 
-    public static void GenerateItemType(List<ItemData> records)
-    {
-        string filePath = Path.Combine(Application.dataPath, "Scripts/Enums/ItemType.cs");
-        WriteEnumFile(filePath, "ItemType", records, data => data.ItemType.ToString(), data => $"    {data.ItemType.ToString().Trim().PadRight(GetMaxKeyLength(records, d => d.ItemType.ToString()))},");
-    }
-
     public static void GenerateConsumptionType(List<ConsumptionItemData> records)
     {
         string filePath = Path.Combine(Application.dataPath, "Scripts/Enums/ConsumptionType.cs");
@@ -132,6 +126,12 @@ public static class Table
     {
         string filePath = Path.Combine(Application.dataPath, "Scripts/Enums/ApplyType.cs");
         WriteEnumFile(filePath, "ApplyType", records, data => data.ApplyType.ToString(), data => $"    {data.ApplyType.ToString().Trim().PadRight(GetMaxKeyLength(records, d => d.ApplyType.ToString()))},");
+    }
+
+    public static void GenerateItemCategory(List<ItemCategoryData> records)
+    {
+        string filePath = Path.Combine(Application.dataPath, "Scripts/Enums/ItemCategory.cs");
+        WriteEnumFile(filePath, "ItemCategory", records, data => data.ItemCategory.ToString(), data => $"    {data.ItemCategory.ToString().Trim().PadRight(GetMaxKeyLength(records, d => d.ItemCategory.ToString()))} = {data.Bitmask},");
     }
 
     public static void GenerateArmorCategory(List<ArmorCategoryData> records)

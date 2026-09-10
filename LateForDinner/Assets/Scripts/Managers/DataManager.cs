@@ -20,6 +20,7 @@ public class DataManager
     public Dictionary<int, ConsumptionItemData> ConsumptionItems { get; private set; } = new Dictionary<int, ConsumptionItemData>();
     public Dictionary<int, EtcItemData> EtcItems { get; private set; } = new Dictionary<int, EtcItemData>();
     public ILookup<int, ItemTemplateData> ItemTemplates { get; private set; } = Enumerable.Empty<ItemTemplateData>().ToLookup(x => x.ItemID);
+    public Dictionary<string, ItemCategoryData> ItemCategories { get; private set; } = new Dictionary<string, ItemCategoryData>();
     public Dictionary<string, ArmorCategoryData> ArmorCategories { get; private set; } = new Dictionary<string, ArmorCategoryData>();
     public Dictionary<string, WeaponCategoryData> WeaponCategories { get; private set; } = new Dictionary<string, WeaponCategoryData>();
     public Dictionary<int, ShopData> Shops { get; private set; } = new Dictionary<int, ShopData>();
@@ -52,6 +53,8 @@ public class DataManager
         Log.Info(LocalizationKey.Log_Data_LoadedSuccessfully, Literal.Tables.EtcItem);
         ItemTemplates = (await LoadListAsync<ItemTemplateData>(Literal.Tables.ItemTemplate)).ToLookup(x => x.ItemID);
         Log.Info(LocalizationKey.Log_Data_LoadedSuccessfully, Literal.Tables.ItemTemplate);
+        ItemCategories = await LoadDictionaryAsync<string, ItemCategoryData>(Literal.Tables.ItemCategory, data => data.ItemCategory);
+        Log.Info(LocalizationKey.Log_Data_LoadedSuccessfully, Literal.Tables.ItemCategory);
         ArmorCategories = await LoadDictionaryAsync<string, ArmorCategoryData>(Literal.Tables.ArmorCategory, data => data.ArmorCategory);
         Log.Info(LocalizationKey.Log_Data_LoadedSuccessfully, Literal.Tables.ArmorCategory);
         WeaponCategories = await LoadDictionaryAsync<string, WeaponCategoryData>(Literal.Tables.WeaponCategory, data => data.WeaponCategory);

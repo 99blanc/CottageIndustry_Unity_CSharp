@@ -154,21 +154,21 @@ public class InventoryManager
         }
     }
 
-    public List<InventorySlot> GetSlotsByType(ItemType? type)
+    public List<InventorySlot> GetSlotsByType(ItemCategory? type)
     {
         if (!type.HasValue)
             return _totalSlots;
 
         return type.Value switch
         {
-            ItemType.Equipment => _equipmentTabSlots,
-            ItemType.Consumption => _consumptionTabSlots,
-            ItemType.Etc => _etcTabSlots,
+            ItemCategory.Equipment => _equipmentTabSlots,
+            ItemCategory.Consumption => _consumptionTabSlots,
+            ItemCategory.Etc => _etcTabSlots,
             _ => _totalSlots
         };
     }
 
-    public bool HandleItemMoveByTab(ItemType? currentTab, SlotArea sourceArea, int sourceIndex, SlotArea targetArea, int targetIndex)
+    public bool HandleItemMoveByTab(ItemCategory? currentTab, SlotArea sourceArea, int sourceIndex, SlotArea targetArea, int targetIndex)
     {
         if (sourceArea != targetArea)
             return HandleCrossAreaMove(sourceArea, sourceIndex, targetArea, targetIndex);
@@ -225,16 +225,16 @@ public class InventoryManager
     public IReadOnlyList<InventorySlot> GetQuickSlots() 
         => _quickSlots;
 
-    private bool TryGetValidItemData(int itemID, out ItemData itemData, out ItemType itemType)
+    private bool TryGetValidItemData(int itemID, out ItemData itemData, out ItemCategory itemType)
     {
         itemData = null;
-        itemType = ItemType.Etc;
+        itemType = ItemCategory.Etc;
 
         if (!Managers.Data.Items.ContainsKey(itemID))
             return false;
 
         itemData = Managers.Data.Items[itemID];
-        Enum.TryParse(itemData.ItemType, true, out itemType);
+        Enum.TryParse(itemData.ItemCategory, true, out itemType);
         return true;
     }
 
@@ -299,7 +299,7 @@ public class InventoryManager
         (a.Quantity, b.Quantity) = (b.Quantity, a.Quantity);
     }
 
-    public void SortInventory(ItemType? currentTabType)
+    public void SortInventory(ItemCategory? currentTabType)
     {
         var targetSlots = GetSlotsByType(currentTabType);
 

@@ -6,6 +6,7 @@ namespace LateForDinner.Data
     public partial class WeaponCategoryData
     {
         public string WeaponCategory { get; set; }
+        public string LocalizationKey { get; set; }
         public int Bitmask { get; set; }
     }
 }

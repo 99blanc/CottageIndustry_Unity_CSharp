@@ -209,27 +209,8 @@ public class PoolManager
             return (cachedInstance, false);
         }
 
-        bool isParentInactive = parent != null && !parent.gameObject.activeInHierarchy;
-        Transform newParent = isParentInactive ? GetFolder(key) : parent;
-        var newInstance = Managers.Resource.Instantiate(key, newParent, false);
-
-        if (IsInstanceNull(newInstance))
-        {
-            Log.Error(LocalizationKey.Log_Pool_InstantiateFailed, key);
-            return (null, false);
-        }
-
-        newInstance.name = key;
-
-        if (isParentInactive && parent != null)
-        {
-            newInstance.transform.SetParent(parent, false);
-            _parents[newInstance] = parent;
-        }
-        else
-            _parents[newInstance] = newParent;
-
-        return (newInstance, true);
+        Log.Error(LocalizationKey.Log_Pool_SyncInstantiateFailed, key);
+        return (null, false);
     }
 
     private void PrepareCachedInstance(GameObject instance, Transform parent, string key)

@@ -163,15 +163,6 @@ public class UISaveDetailPopup : UIPopup, IFocusablePopup
         Managers.UI.GetDisplay<UITitleDisplay>()?.Refresh();
     }
 
-    private void SetText(Texts textEnum, string text)
-        => GetText(textEnum).text = text;
-    private void SetText(Texts textEnum, LocalizationKey key)
-        => GetText(textEnum).text = Managers.Localization.Get(key);
-    private void SetText<T1>(Texts textEnum, LocalizationKey key, T1 arg1)
-        => GetText(textEnum).text = Managers.Localization.Get(key, arg1);
-    private void SetText<T1, T2, T3>(Texts textEnum, LocalizationKey key, T1 arg1, T2 arg2, T3 arg3)
-        => GetText(textEnum).text = Managers.Localization.Get(key, arg1, arg2, arg3);
-
     private void SetMealImageActive(bool isActive)
     {
         var image = GetImage(Images.MealTimeImage);
@@ -195,4 +186,16 @@ public class UISaveDetailPopup : UIPopup, IFocusablePopup
         if (image != null)
             image.SetActive(isActive);
     }
+
+    private void SetText(Texts textEnum, string text)
+        => GetText(textEnum).text = text;
+
+    private void SetText(Texts textEnum, LocalizationKey key)
+        => GetText(textEnum).text = Managers.Localization.Get(key);
+
+    private void SetText<T1>(Texts textEnum, LocalizationKey key, T1 arg1)
+        => GetText(textEnum).text = Managers.Localization.Get(key, arg1);
+
+    private void SetText<T1, T2, T3>(Texts textEnum, LocalizationKey key, T1 arg1, T2 arg2, T3 arg3)
+        => GetText(textEnum).text = Managers.Localization.Get(key, arg1, arg2, arg3);
 }

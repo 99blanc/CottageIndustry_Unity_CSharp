@@ -88,13 +88,13 @@ public class ConfigManager
 
         foreach (string arg in args)
         {
-            if (arg.Equals(Define.Execute.Console, StringComparison.OrdinalIgnoreCase))
+            if (arg.Equals(Literal.Execute.Console, StringComparison.OrdinalIgnoreCase))
             {
                 Option.Debug.enableConsole = true;
                 Log.System(LocalizationKey.Log_Config_ConsoleEnabled);
             }
 
-            if (arg.Equals(Define.Execute.Debug, StringComparison.OrdinalIgnoreCase))
+            if (arg.Equals(Literal.Execute.Debug, StringComparison.OrdinalIgnoreCase))
             {
                 Option.Debug.isDebugMode = true;
                 Log.System(LocalizationKey.Log_Config_DebugEnabled);

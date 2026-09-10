@@ -3,9 +3,9 @@ using MemoryPack;
 namespace LateForDinner.Data
 {
     [MemoryPackable]
-    public partial class ArmorCategoryData
+    public partial class ItemCategoryData
     {
-        public string ArmorCategory { get; set; }
+        public string ItemCategory { get; set; }
         public string LocalizationKey { get; set; }
         public int Bitmask { get; set; }
     }

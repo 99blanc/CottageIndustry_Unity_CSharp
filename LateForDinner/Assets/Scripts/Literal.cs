@@ -8,6 +8,12 @@ public class Literal
         public const string InputActionAsset = "InputSystem_Actions";
     }
 
+    public class Execute
+    {
+        public const string Console = "-console";
+        public const string Debug = "-debug";
+    }
+
     public class Extensions
     {
         public const string Backup = ".backup";
@@ -177,6 +183,7 @@ public class Literal
         public const string ConsumptionItem = "ConsumptionItem";
         public const string EtcItem = "EtcItem";
         public const string ItemTemplate = "ItemTemplate";
+        public const string ItemCategory = "ItemCategory";
         public const string ArmorCategory = "ArmorCategory";
         public const string WeaponCategory = "WeaponCategory";
         public const string Shop = "Shop";
@@ -194,14 +201,14 @@ public class Literal
     public class Types
     {
         public const string Double = "double";
-        public const string Error = "error";
         public const string Float = "float";
         public const string Int = "int";
-        public const string Info = "info";
         public const string Long = "long";
         public const string Short = "short";
         public const string System = "system";
+        public const string Info = "info";
         public const string Warn = "warn";
         public const string Warning = "warning";
+        public const string Error = "error";
     }
 }

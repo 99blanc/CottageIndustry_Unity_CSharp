@@ -129,7 +129,7 @@ public class UIInventorySlot : UISlot, IDraggableSlot<UIInventorySlot>
         if (_data == null || targetSlot.Data == null)
             return;
 
-        ItemType? currentTabType = Managers.UI.GetPopup<UIQuestInventoryPopup>().CurrentTabType;
+        ItemCategory? currentTabType = Managers.UI.GetPopup<UIQuestInventoryPopup>().CurrentTabType;
         Managers.Inventory.HandleItemMoveByTab(currentTabType, CurrentSlotArea, ((IDraggableSlot<UIInventorySlot>)this).SlotIndex, targetSlot.CurrentSlotArea, ((IDraggableSlot<UIInventorySlot>)targetSlot).SlotIndex);
     }
 

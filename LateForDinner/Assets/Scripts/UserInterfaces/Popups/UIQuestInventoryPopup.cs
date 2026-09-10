@@ -63,6 +63,8 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         AttributePanel
     }
 
+    public ItemCategory? CurrentTabType => _currentTabType;
+    private ItemCategory? _currentTabType = null;
     private readonly ReactiveProperty<ButtonState> _attributeButtonState = new ReactiveProperty<ButtonState>(ButtonState.Normal);
     private readonly ReactiveProperty<ButtonState> _totalButtonState = new ReactiveProperty<ButtonState>(ButtonState.Normal);
     private readonly ReactiveProperty<ButtonState> _equipmentButtonState = new ReactiveProperty<ButtonState>(ButtonState.Normal);
@@ -73,9 +75,7 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
     private readonly ReactiveProperty<ButtonState> _scrollDownButtonState = new ReactiveProperty<ButtonState>(ButtonState.Normal);
     private readonly List<UIInventorySlot> _createdSlots = new List<UIInventorySlot>();
     private readonly List<UIInventorySlot> _equipmentCreatedSlots = new List<UIInventorySlot>();
-    private ItemType? _currentTabType = null;
     private bool _isAttributePanelOpen = true;
-    public ItemType? CurrentTabType => _currentTabType;
 
     public override void OnInit()
     {
@@ -161,7 +161,7 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
             RefreshPlayerInfo();
     }
 
-    private void RefreshInventory(ItemType? type)
+    private void RefreshInventory(ItemCategory? type)
     {
         var displaySlots = Managers.Inventory.GetSlotsByType(type).ToList();
 
@@ -185,7 +185,7 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         }
     }
 
-    private bool IsFilteredOut(InventorySlot slotData, ItemType? type)
+    private bool IsFilteredOut(InventorySlot slotData, ItemCategory? type)
     {
         if (!type.HasValue) 
             return false;
@@ -196,7 +196,7 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
         if (!Managers.Data.Items.TryGetValue(slotData.ItemID, out var itemData)) 
             return false;
 
-        if (!Enum.TryParse<ItemType>(itemData.ItemType, true, out var parsedItemType)) 
+        if (!Enum.TryParse<ItemCategory>(itemData.ItemCategory, true, out var parsedItemType)) 
             return false;
 
         return parsedItemType != type.Value;
@@ -256,21 +256,21 @@ public class UIQuestInventoryPopup : UIPopup, IDraggablePopup, IFocusablePopup
 
     private void OnClickEquipmentTab(PointerEventData data)
     {
-        _currentTabType = ItemType.Equipment;
+        _currentTabType = ItemCategory.Equipment;
         OnClickScrollUp(data);
         RefreshInventory(_currentTabType);
     }
 
     private void OnClickConsumptionTab(PointerEventData data)
     {
-        _currentTabType = ItemType.Consumption;
+        _currentTabType = ItemCategory.Consumption;
         OnClickScrollUp(data);
         RefreshInventory(_currentTabType);
     }
 
     private void OnClickEtcTab(PointerEventData data)
     {
-        _currentTabType = ItemType.Etc;
+        _currentTabType = ItemCategory.Etc;
         OnClickScrollUp(data);
         RefreshInventory(_currentTabType);
     }

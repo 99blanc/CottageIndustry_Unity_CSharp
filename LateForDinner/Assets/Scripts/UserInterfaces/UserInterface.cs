@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -50,13 +51,13 @@ public abstract class UserInterface : MonoBehaviour, IPoolable
         for (int index = 0; index < values.Length; index++)
         {
             string childName = ZString.Concat(values.GetValue(index));
-            newView[index] = IsGameObjectType<T>() ? gameObject.FindChildAssert<Transform>(childName, true) : gameObject.FindChildAssert<T>(childName, true);
+            newView[index] = typeof(T) == typeof(GameObject) ? gameObject.FindChildAssert<Transform>(childName, true) : gameObject.FindChildAssert<T>(childName, true);
         }
     }
 
     protected T Get<T, TEnum>(TEnum element) where T : UnityEngine.Object where TEnum : Enum
     {
-        if (!TryGetViewCollection<T>(out var newView))
+        if (!_views.TryGetValue(typeof(T), out var newView))
             return null;
 
         int index = Convert.ToInt32(element);
@@ -147,12 +148,6 @@ public abstract class UserInterface : MonoBehaviour, IPoolable
 
         _tokens.Clear();
     }
-
-    private bool IsGameObjectType<T>() where T : UnityEngine.Object
-        => typeof(T) == typeof(GameObject);
-
-    private bool TryGetViewCollection<T>(out UnityEngine.Object[] newView) where T : UnityEngine.Object
-        => _views.TryGetValue(typeof(T), out newView);
 
     private bool IsIndexOutOfBounds(int index, int length)
         => index < 0 || index >= length;
